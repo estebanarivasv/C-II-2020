@@ -19,6 +19,8 @@ argumentos sean válidos (no repetidos, números enteros, y operaciones válidas
 
 
 def main():
+    first_num = 0
+    second_num = 0
     try:
         if len(sys.argv[1:]) > 6:
             print("You've inserted more arguments than expected for the calculator.")

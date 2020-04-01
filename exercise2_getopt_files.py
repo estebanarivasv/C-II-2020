@@ -29,6 +29,7 @@ def verify_existence(i_file):
 
 
 def main():
+    i_lines = []
     try:
         if len(sys.argv[1:]) > 4:
             print("You've inserted more arguments than expected.")
