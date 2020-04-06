@@ -71,7 +71,6 @@ def get_out_file(opts):
 
 
 def main():
-
     (opts, args) = getopt.getopt(sys.argv[1:], "c:f:l:")
     command = get_command(opts)
     log = open(str(get_log(opts)), "a")
