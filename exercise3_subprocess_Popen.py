@@ -24,7 +24,7 @@ por el comando si este falla.
 
 Por ejemplo:
 
-python ejecutor.py -c “ip a” -f /tmp/salida -l /tmp/log
+python ejecutor.py -c "ip a" -f /tmp/salida -l /tmp/log
 
 El archivo /tmp/salida deberá contener la salida del comando, y /tmp/log deberá contener:
 
@@ -73,26 +73,26 @@ def get_out_file(opts):
 def main():
 
     (opts, args) = getopt.getopt(sys.argv[1:], "c:f:l:")
-    print(opts)
-    print(args)
-
-    """command = get_command(opts)
+    command = get_command(opts)
     log = open(str(get_log(opts)), "a")
     out_file = open(str(get_out_file(opts)), "a")
 
     date_fn = sp.Popen(["date"], stdout=sp.PIPE, universal_newlines=True)
-    out = str(date_fn.communicate()[0])
-    message = "\n" + out + "Command " + str(command) + " properly executed.\n\n"
+    date_stdout = str(date_fn.communicate()[0])
 
-    main_fn = sp.Popen([str(command)], stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True)
-    print("main", main_fn.communicate())
-    (main_out, main_err) = main_fn.communicate()
+    main_fn = sp.Popen([command], shell=True, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True)
+    fn_out, fn_err = main_fn.communicate()
+    print(fn_out)
+    print(fn_err)
 
-    if len(str(main_err)) == 0:
-        log.write(message)
-        out_file.write(str(main_out))
+    if len(str(fn_err)) == 0:
+        print("Log:\n\n", date_stdout, "Command ", str(command), " properly executed.\n\n")
+        log.writelines("\n" + date_stdout + "Command " + str(command) + " properly executed.\n\n")
+        print("Output file:\n\n", date_stdout, fn_out)
+        out_file.writelines("\n" + date_stdout + fn_out)
     else:
-        log.write(str(main_err))"""
+        print("Log:\n\n", date_stdout, fn_err)
+        log.write(str("\n" + date_stdout + fn_err))
 
 
 if __name__ == '__main__':
