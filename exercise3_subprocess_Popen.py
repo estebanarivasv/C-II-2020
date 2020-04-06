@@ -71,7 +71,6 @@ def get_out_file(opts):
 
 
 def main():
-
     (opts, args) = getopt.getopt(sys.argv[1:], "c:f:l:")
     command = get_command(opts)
     log = open(str(get_log(opts)), "a")
@@ -82,8 +81,6 @@ def main():
 
     main_fn = sp.Popen([command], shell=True, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines=True)
     fn_out, fn_err = main_fn.communicate()
-    print(fn_out)
-    print(fn_err)
 
     if len(str(fn_err)) == 0:
         print("Log:\n\n", date_stdout, "Command ", str(command), " properly executed.\n\n")
