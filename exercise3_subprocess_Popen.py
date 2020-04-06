@@ -72,7 +72,7 @@ def get_out_file(opts):
 
 def main():
 
-    (opts, args) = getopt.getopt(sys.argv[1:], "f:l:c")
+    (opts, args) = getopt.getopt(sys.argv[1:], "c:f:l:")
     print(opts)
     print(args)
 
