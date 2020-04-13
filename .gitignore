@@ -5,4 +5,4 @@ lib/
 lib64
 share/
 pyvenv.cfg
-desktop.ini
+**/desktop.ini
