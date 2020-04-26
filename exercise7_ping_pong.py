@@ -29,37 +29,49 @@ Soy proceso hijo2 con PID=1547: "pong"
 """
 
 
-def USR1_chld_handler(signal, frame):
-    print("I'm the child No. 2\tPID: ", os.getpid(), ": pong")
+def send_signal(pid):
+    os.kill(pid, signal.SIGUSR1)
 
 
-def USR1_parent_handler(signal, frame):
+def chld2_handler_USR1(signal, frame):
+    print("I'm the child 2. PID =", os.getpid(), "\nPong!")
+
+
+def handler_USR1(signal, frame):
     pass
 
 
 def main():
-    child1 = os.fork()
-    child2 = os.fork()
+    signal.signal(signal.SIGUSR1, handler_USR1)
 
-    # CHILD PROCESS No. 1
-    if child1 == 0:
+    pid1 = os.fork()
+
+    # Child no. 1
+    if pid1 == 0:
         for i in range(10):
-            print("I'm the child No. 1\tPID: ", os.getpid(), ": ping")
-            os.kill(int(os.getppid()), signal.SIGUSR1)
-            time.sleep(5)
+            ppid = os.getppid()
+            print("\n\n-----------------------")
+            send_signal(ppid)
+            print("I'm the child 1. PID =", os.getpid(), "\nPing!")
+            time.sleep(0.01)
+        print("Finishing.")
 
-    # CHILD PROCESS No. 2
-    if child2 == 0:
-        signal.signal(signal.SIGUSR1, USR1_chld_handler)
-        while True:
-            signal.pause()
+    # Parent process
+    elif pid1 != 0:
 
-    # PARENT PROCESS
-    else:
-        signal.signal(signal.SIGUSR1, USR1_parent_handler)
-        while True:
-            signal.pause()
-            os.kill(child2, signal.SIGUSR1)
+        pid2 = os.fork()
+
+        # Child no. 2
+        if pid2 == 0:
+            signal.signal(signal.SIGUSR1, chld2_handler_USR1)
+            while True:
+                signal.pause()
+
+        # Parent process
+        elif pid2 != 0:
+            while True:
+                signal.pause()
+                send_signal(pid2)
 
 
 if __name__ == '__main__':
