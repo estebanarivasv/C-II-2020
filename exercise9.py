@@ -45,8 +45,73 @@ gestionar el pipe.
 """
 
 
+def pA_USR2_handler(signal, frame):
+    print("A (PID=%d) leyendo:\n" % os.getpid())
+
+
+def pB_USR1_handler(signal, frame):
+    print("Message 1 (PID=%d)\n" % os.getpid())
+
+
+def pC_USR1_handler(signal, frame):
+    print("Message 2 (PID=%d)\n" % os.getpid())
+
+
 def main():
-    pass
+    pipe_path = '/tmp/shared_pipe'
+
+    if not os.path.exists(pipe_path):
+        os.mkfifo(pipe_path)
+
+    parent = os.fork()
+
+    # Parent's sentences (PROCESS A)
+    if parent:
+        signal.signal(signal.SIGUSR2, pA_USR2_handler)
+        child_pid = parent
+        time.sleep(2)
+        os.kill(child_pid, signal.SIGUSR1)
+        print("señal enviada y pc A entrando en espera")
+        signal.pause()
+        pipe_output = open(pipe_path, 'r')
+
+        for line in pipe_output:
+            print(line)
+
+        os.wait()
+        os._exit(0)
+
+    else:
+        grandparent_pid = os.getppid()
+        child = os.fork()
+
+        # Child's sentences (PROCESS B)
+        if child:
+            signal.signal(signal.SIGUSR1, pB_USR1_handler)
+            signal.pause()
+            print("señal recibida y pc B escribiendo en pipe")
+            grandchild_pid = child
+            pipe_in = open(pipe_path, 'w')
+            pipe_in.write("Message 1 (PID=%d)\n" % os.getpid())
+            pipe_in.close()
+            os.kill(grandchild_pid, signal.SIGUSR1)
+            print("señal enviada")
+            time.sleep(4)
+            os._exit(0)
+
+        # Grandchild's sentences (PROCESS C)
+        else:
+            signal.signal(signal.SIGUSR1, pC_USR1_handler)
+            signal.pause()
+            print("señal recibida y pc C escribiendo en pipe")
+            pipe_in = open(pipe_path, 'w')
+            
+            pipe_in.write("Message 2 (PID=%d)\n" % os.getpid())
+            pipe_in.close()
+            time.sleep(1)
+            os.kill(grandparent_pid, signal.SIGUSR2)
+            print("señal enviada")
+            os._exit(0)
 
 
 if __name__ == '__main__':
