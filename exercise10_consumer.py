@@ -6,7 +6,7 @@ import time
 
 """
 
---- Exercise statement: N°10 - 
+--- Exercise statement: N°10 - consumer
 
 Crear un sistema Productor-Consumidor (Escritor-Lector) donde un proceso productor almacene un mensaje de saludo en una 
 tubería FIFO. Ese mensaje será enviado mediante línea de comandos como argumento del programa. Ejemplo
