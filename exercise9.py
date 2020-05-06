@@ -57,60 +57,89 @@ def pC_USR1_handler(signal, frame):
     print("Message 2 (PID=%d)\n" % os.getpid())
 
 
+def write_to_fifo(write_head, message):
+    w = write_head
+    with open(w, 'w') as w:
+        w.write(message)
+    w.close()
+
+
+def read_from_fifo(read_head):
+    r = read_head
+    with open(r, 'r') as r:
+        print("Process A (PID=%d) reading from named pipe:\n" % os.getpid())
+        while True:
+            line = r.readline()
+            if line:
+                print(line)
+            else:
+                break
+        r.close()
+
+
 def main():
-    pipe_path = '/tmp/shared_pipe'
-
-    if not os.path.exists(pipe_path):
-        os.mkfifo(pipe_path)
-
+    # This pipe works well communicating with processes in the same python file
+    r, w = os.pipe()
     parent = os.fork()
 
-    # Parent's sentences (PROCESS A)
     if parent:
+        # Parent's sentences (PROCESS A)
         signal.signal(signal.SIGUSR2, pA_USR2_handler)
         child_pid = parent
+
         time.sleep(2)
         os.kill(child_pid, signal.SIGUSR1)
-        print("señal enviada y pc A entrando en espera")
-        signal.pause()
-        pipe_output = open(pipe_path, 'r')
 
-        for line in pipe_output:
-            print(line)
+        signal.pause()
+        # Process A reads the named pipe content after it receives a signal
+        os.close(w)
+        read_from_fifo(r)
 
         os.wait()
         os._exit(0)
 
     else:
+        # Child's sentences (PROCESS B)
+        signal.signal(signal.SIGUSR1, pB_USR1_handler)
         grandparent_pid = os.getppid()
+
+        signal.pause()
+        os.close(r)
+
+        signal.signal(signal.SIGUSR1, pC_USR1_handler)
+
         child = os.fork()
 
-        # Child's sentences (PROCESS B)
         if child:
-            signal.signal(signal.SIGUSR1, pB_USR1_handler)
-            signal.pause()
-            print("señal recibida y pc B escribiendo en pipe")
-            grandchild_pid = child
-            pipe_in = open(pipe_path, 'w')
-            pipe_in.write("Message 1 (PID=%d)\n" % os.getpid())
-            pipe_in.close()
-            os.kill(grandchild_pid, signal.SIGUSR1)
-            print("señal enviada")
-            time.sleep(4)
-            os._exit(0)
+            # Child's sentences (PROCESS B)
+            print("\n")
+            message = "Message 1 (PID=" + str(os.getpid()) + ")"
 
-        # Grandchild's sentences (PROCESS C)
-        else:
-            signal.signal(signal.SIGUSR1, pC_USR1_handler)
-            signal.pause()
-            print("señal recibida y pc C escribiendo en pipe")
-            pipe_in = open(pipe_path, 'w')
-            
-            pipe_in.write("Message 2 (PID=%d)\n" % os.getpid())
-            pipe_in.close()
+            # Process B writes message 1 in named pipe
+            with open(w, 'w') as w:
+                w.write(message)
+                w.flush()
+            grandchild_pid = child
+
             time.sleep(1)
+            os.kill(grandchild_pid, signal.SIGUSR1)
+
+        else:
+            # Grandchild's sentences (PROCESS C)
+            signal.pause()
+            print("\n")
+
+            # Process C writes message 2 in named pipe
+            message = "Message 2 (PID=" + str(os.getpid()) + ")"
+            w = open(w)
+            with os.fdopen(w, 'w') as w:
+                w.write(message)
+                w.close()
+            print("todavia no envió a a buelo")
+            # time.sleep(1)
             os.kill(grandparent_pid, signal.SIGUSR2)
-            print("señal enviada")
+            print("nieto envió a a buelo")
+
             os._exit(0)
 
 
