@@ -2,6 +2,29 @@ import socket
 import sys	#for exit
 import getopt
 
+def sendMessage():
+    msg = input("Message to send: ")
+    s.send(msg.encode('ascii'))
+
+def sendNextMessage():
+    msg = input("Insert next message: ")
+    s.send(msg.encode('ascii'))
+
+def resendMessage():
+    msg = input("Resend last message: ")
+    s.send(msg.encode('ascii'))
+
+def everythingOk():
+    msg = s.recv(1024)
+    msg.decode("ascii")
+    print("Server response: ", msg)
+    if msg == 400 or msg == 500:
+        print("Try again")
+        return False
+    elif msg == 200:
+        print("Everything ok")
+        return True
+
 # create dgram udp socket
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,25 +43,10 @@ for (opt, arg) in opts:
 
 s.connect((host,port))
 
-hello = "hello|" + (input('Enter name: '))
-print(hello)
-s.send(hello.encode('ascii'))
-msg = s.recv(1024)
-print('Server reply : ' + msg.decode("ascii"))
-
-email = "email|" + (input('Enter email: '))+ "|"
-print(email)
-s.send(email.encode('ascii'))
-msg = s.recv(1024)
-print('Server reply : ' + msg.decode("ascii"))
-
-key = "key|" + (input('Enter key: ')) + "|"
-s.send(key.encode('ascii'))
-msg = s.recv(1024)
-print('Server reply : ' + msg.decode("ascii"))
-
-exit = "exit"
-s.send(exit.encode('ascii'))
-msg = s.recv(1024)
-print('Server reply : ' + msg.decode("ascii"))
-
+sendMessage()
+for i in range(3):
+    if everythingOk:
+        sendNextMessage()
+    elif not everythingOk:
+        resendMessage()
+print("Sending successful")
