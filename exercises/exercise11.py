@@ -1,6 +1,6 @@
 """
 
---- Exercise statement: N°11 - cliente_juncotic
+--- Exercise statement: N°11 - socket streams
 
 El código server_compu2.py (repo git de la cátedra) implementa un protocolo que corre sobre TCP y
 tiene los siguientes comandos:
