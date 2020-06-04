@@ -40,53 +40,76 @@ Tag: tcp_udp
 """
 
 
-def execute_dgram_server(port, route):
+def execute_dgram_client(ip, port):
     import socket
-    import time
 
-    serversocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    except socket.error:
+        print('Failed to create socket')
+        sys.exit()
 
-    host = ""
-    port = port
-
-    serversocket.bind((host, port))
+    host = ip
+    port = int(port)
 
     while True:
-        data, addr = serversocket.recvfrom(1024)
-        print(addr)
-        address = addr[0]
-        port = addr[1]
-        print("Address: %s - Port %d" % (address, port))
-        print("Recibido: " + data.decode("ascii"))
         msg = input('Enter message to send : ').encode()
-        serversocket.sendto(msg, addr)
-        time.sleep(1)
+        try:
+            # Set the whole string
+            clientsocket.sendto(msg, (host, port))
+
+        except socket.error:
+            print('Error Code : ' + str(msg[0]) + ' Message ' + msg[1])
+            sys.exit()
 
 
-def execute_stream_server(port, route):
-    print("holi 2", port, route)
+def execute_stream_client(ip, port):
+    import socket
+    clientsocket = ""
+
+    try:
+        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    except socket.error:
+        print("Failed to create socket")
+
+    host = ip
+    port = int(port)
+
+    clientsocket.connect((host, port))
+
+    while True:
+        try:
+            msg = input("Enter message to send: ")
+            clientsocket.send(msg.encode("ascii"))
+        except EOFError:
+            break
+
+    print("\nClosing client...")
+    clientsocket.close()
 
 
 def main():
     port = ""
-    route = ""
+    ip = ""
     try:
-        (option, value) = getopt.getopt(sys.argv[1:], "p:t:f:")
+        if len(sys.argv[1:]) <= 0:
+            raise ValueError
+        (option, value) = getopt.getopt(sys.argv[1:], "a:t:p:")
         print(option)
         for (opt, val) in option:
             if opt == "-p":
                 port = val
-            if opt == "-f":
-                route = val
+            if opt == "-a":
+                ip = val
         for (opt, val) in option:
             if opt == "-t":
                 protocol = val.lower()
                 if protocol == "udp":
-                    print("Executing dgram server socket")
-                    execute_dgram_server(port, route)
+                    print("Executing dgram client socket")
+                    execute_dgram_client(ip, port)
                 elif protocol == "tcp":
-                    print("Executing stream server socket")
-                    execute_stream_server(port, route)
+                    print("Executing stream client socket")
+                    execute_stream_client(ip, port)
                 else:
                     raise ValueError
 

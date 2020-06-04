@@ -1,5 +1,6 @@
 import getopt
 import sys
+import os
 
 """
 
@@ -42,37 +43,89 @@ Tag: tcp_udp
 
 def execute_dgram_server(port, route):
     import socket
-    import time
 
-    serversocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        serversocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    except socket.error:
+        print("Failed to create socket")
+        sys.exit()
 
     host = ""
-    port = port
+    port = int(port)
 
     serversocket.bind((host, port))
 
     while True:
         data, addr = serversocket.recvfrom(1024)
-        print(addr)
         address = addr[0]
         port = addr[1]
         print("Address: %s - Port %d" % (address, port))
         print("Recibido: " + data.decode("ascii"))
-        msg = input('Enter message to send : ').encode()
-        serversocket.sendto(msg, addr)
-        time.sleep(1)
+
+        if os.path.exists(route):
+            pass
+        else:
+            os.mknod(route)
+
+        if data == "" or len(data) == 0:
+            break
+        else:
+            file = open(route, "a")
+            file.write(data.decode("ascii") + "\n")
+            file.close()
+    print("Closing server...")
+    serversocket.close()
 
 
 def execute_stream_server(port, route):
-    print("holi 2", port, route)
+    import socket
+
+    try:
+        serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    except socket.error:
+        print("Failed to create socket")
+        sys.exit()
+
+    host = ""
+    port = int(port)
+
+    serversocket.bind((host, port))
+
+    serversocket.listen(1)
+
+    clientsocket, address = serversocket.accept()
+
+    while True:
+        data, addr = clientsocket.recvfrom(1024)
+        print(f"Address: {address[0]} - Port {address[1]}")
+        print("Recibido: ", data.decode("ascii"))
+
+        if os.path.exists(route):
+            pass
+        else:
+            os.mknod(route)
+
+        if data == "" or len(data) == 0:
+            break
+        else:
+            file = open(route, "a")
+            file.write(data.decode("ascii") + "\n")
+            file.close()
+    print("Closing server..")
+    serversocket.close()
+
+
 
 
 def main():
     port = ""
     route = ""
     try:
+        if len(sys.argv[1:]) <= 0:
+            print("Usage: exercise12_server.py -p <port> -t <transport protocol> -f <text file route>")
         (option, value) = getopt.getopt(sys.argv[1:], "p:t:f:")
-        print(option)
         for (opt, val) in option:
             if opt == "-p":
                 port = val
@@ -90,7 +143,7 @@ def main():
                 else:
                     raise ValueError
 
-    except ValueError or getopt.GetoptError:
+    except getopt.GetoptError:
         print("Usage: exercise12_server.py -p <port> -t <transport protocol> -f <text file route>")
 
 

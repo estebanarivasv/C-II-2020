@@ -1,3 +1,9 @@
+"""
+This script was written by @d1cor
+
+"""
+
+
 #!/usr/bin/python3
 import socket, os, threading, datetime
 
