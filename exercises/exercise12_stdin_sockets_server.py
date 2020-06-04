@@ -124,7 +124,7 @@ def main():
     route = ""
     try:
         if len(sys.argv[1:]) <= 0:
-            print("Usage: exercise12_server.py -p <port> -t <transport protocol> -f <text file route>")
+            print("Usage: exercise12_stdin_sockets_server.py -p <port> -t <transport protocol> -f <text file route>")
         (option, value) = getopt.getopt(sys.argv[1:], "p:t:f:")
         for (opt, val) in option:
             if opt == "-p":
@@ -144,7 +144,7 @@ def main():
                     raise ValueError
 
     except getopt.GetoptError:
-        print("Usage: exercise12_server.py -p <port> -t <transport protocol> -f <text file route>")
+        print("Usage: exercise12_stdin_sockets_server.py -p <port> -t <transport protocol> -f <text file route>")
 
 
 if __name__ == '__main__':

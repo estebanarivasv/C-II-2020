@@ -5,7 +5,7 @@ import os
 
 """
 
---- Exercise statement: N°5 - fork
+--- Exercise statement: N°6 - fork
 
 Realice un programa que genere N procesos hijos. Cada proceso al iniciar deberá mostrar:
 

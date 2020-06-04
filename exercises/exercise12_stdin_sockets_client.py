@@ -114,7 +114,7 @@ def main():
                     raise ValueError
 
     except ValueError or getopt.GetoptError:
-        print("Usage: exercise12_server.py -p <port> -t <transport protocol> -f <text file route>")
+        print("Usage: exercise12_stdin_sockets_server.py -p <port> -t <transport protocol> -f <text file route>")
 
 
 if __name__ == '__main__':
