@@ -24,18 +24,18 @@ if __name__ == '__main__':
         sys.exit()
 
     host = "0.0.0.0"
-    port = 5300
+    port = 5110
 
     s.connect((host, port))
 
     print("COMMAND PROMPT\n")
     while True:
         msg = input('Command: ')
-        s.send(msg.encode('ascii'))
+        s.send(msg.encode())
 
         msg = s.recv(1024)
 
-        print('Server reply: ' + msg.decode("utf-8"))
+        print('Server reply: ' + msg.decode())
 
         for (opt, val) in option:
             if opt == "-l":

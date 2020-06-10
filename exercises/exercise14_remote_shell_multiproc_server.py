@@ -1,6 +1,6 @@
 """
 
---- Exercise statement: N°14 - remote shell
+--- Exercise statement: N°14 - remote shell multiproc
 
 Reescribir el ejercicio anterior de modo que permita recibir consultas desde varios clientes remotos en forma
 simultánea. Utilice el módulo multiprocessing de Python3 para lograr su objetivo.
@@ -22,11 +22,7 @@ def shell(c_socket, address):
     while True:
         data = c_socket.recv(1024)
 
-        data.decode('ascii')
-
-        print(data)
-
-        data = str(data)
+        data = data.decode()
 
         if data == "\n":
             break
@@ -40,7 +36,7 @@ def shell(c_socket, address):
 
         message = "\n\nSTDOUT: \n" + stdout + "\n\n" + "STDERR: \n" + stderr
 
-        c_socket.send(message.encode('ascii'))
+        c_socket.send(message.encode())
 
 
 if __name__ == '__main__':
@@ -54,9 +50,11 @@ if __name__ == '__main__':
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     host = ""
-    port = 5300
+    port = 5110
 
     serversocket.bind((host, port))
+
+
 
     serversocket.listen(5)
     # Accepts 5 connections max from clients
@@ -65,6 +63,6 @@ if __name__ == '__main__':
 
         clientsocket, addr = serversocket.accept()
 
-        client = multiprocessing.Process(target=shell(clientsocket, addr))
+        client = multiprocessing.Process(target=shell, args=(clientsocket, addr))
 
         client.start()
