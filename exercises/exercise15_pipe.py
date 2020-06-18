@@ -27,7 +27,6 @@ def signal_handler(signal, frame):
 
 
 def from_STDIN_reader(a):
-    # leer lineas desde stdin y enviar por pipe a p2
     signal.signal(signal.SIGINT, signal_handler)
     sys.stdin = open(0)  # Gets stdin working in the process 1
     while True:
@@ -41,7 +40,6 @@ def from_STDIN_reader(a):
 
 
 def from_PIPE_reader(b):
-    # leer desde pipe y mostrar por pantalla
     signal.signal(signal.SIGINT, signal_handler)
     while True:
         data = b.recv()
