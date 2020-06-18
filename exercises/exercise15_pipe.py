@@ -14,13 +14,45 @@ contenido leído desde el pipe.
 Tag: mp_pipe
 """
 
-
-import subprocess as sp
-import socket
 import sys
-import getopt
 import multiprocessing
+import os
+import time
+import signal
+
+
+def signal_handler(signal, frame):
+    print("Exiting...")
+    sys.exit(0)
+
+
+def from_STDIN_reader(a):
+    # leer lineas desde stdin y enviar por pipe a p2
+    signal.signal(signal.SIGINT, signal_handler)
+    sys.stdin = open(0)  # Gets stdin working in the process 1
+    while True:
+        data = input("> ")
+        if data == "":
+            break
+        a.send(data)
+        print(f"\n\n_______________________\nSending data to second process\n_______________________")
+        time.sleep(4)
+    print("Proc1 done!")
+
+
+def from_PIPE_reader(b):
+    # leer desde pipe y mostrar por pantalla
+    signal.signal(signal.SIGINT, signal_handler)
+    while True:
+        data = b.recv()
+        time.sleep(2)
+        print(f"_______________________\nReading pid:{os.getpid()}, message: {data}\n_______________________")
 
 
 if __name__ == '__main__':
-
+    signal.signal(signal.SIGINT, signal_handler)
+    a, b = multiprocessing.Pipe()
+    proc1 = multiprocessing.Process(target=from_STDIN_reader, args=(a,))
+    proc2 = multiprocessing.Process(target=from_PIPE_reader, args=(b,))
+    proc1.start()
+    proc2.start()
