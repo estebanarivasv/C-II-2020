@@ -15,13 +15,37 @@ pantalla.
 Tag: mp_mq
 """
 
-
 import subprocess as sp
 import socket
 import sys
 import getopt
 import multiprocessing
+import os
+import time
+
+
+def child_prints(proc_num, q):
+    print(f"\nProcess no. {proc_num}, PID: {os.getpid()}")
+    time.sleep(proc_num)
+    q.put(f"{os.getpid()}\t")
 
 
 if __name__ == '__main__':
+    q = multiprocessing.Queue()
+    child = []
+    for i in range(10):
+        j = i + 1
+        child_proc = multiprocessing.Process(target=child_prints, args=(j, q,))
+        child.append(child_proc)
+        child[i].start()
+        child[i].join()
 
+    while True:
+        try:
+            while True:
+                data = q.get(True, 2)
+                print(f"Receiving from children: {data}")
+        except Exception:
+            print(f"Empty queue.")
+        break
+    print("Parent exiting.")
