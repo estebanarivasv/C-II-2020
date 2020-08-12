@@ -53,7 +53,10 @@ def run_client_dgram(udp_ip, udp_port):
 
     # Receive the time datagram
     data, addr = client_dgram.recvfrom(1024)  # buffer size is 1024 bytes
-    print(f"Time:\n{data}")
+    try:
+        print(f"Time:\n{data.decode()}")
+    except UnicodeDecodeError:
+        print("Error at decoding server response")
 
 
 def run_client_stream(tcp_ip, tcp_port):
@@ -68,9 +71,11 @@ def run_client_stream(tcp_ip, tcp_port):
 
     # Receive the time
     time = client_stream.recv(1024).decode()
-    print(f"Time:\n{time}")
 
-    # Close connection
+    try:
+        print(f"Time:\n{time}")
+    except UnicodeDecodeError:
+        print("Error at decoding server response")
 
 
 if __name__ == '__main__':
@@ -78,7 +83,8 @@ if __name__ == '__main__':
     (option, value) = getopt.getopt(sys.argv[1:], "h:p:t:")
 
     if len(sys.argv[1:]) <= 1:
-        print("Usage: -h server_ip, -p server_port -t tcp/udp protocol")
+        print("Usage: -h server_ip, -p server_port -t tcp/udp protocol\nExample: python3 exercise18_time_client.py -h "
+              "time.nist.gov -p 13 -t tcp")
     else:
         host = ""
         port = ""
