@@ -45,9 +45,6 @@ def invert_char(c_socket, address):
         if data == "\n":
             break
 
-        print(f"\nAddress: {str(address)}")
-        print(f"\nReceived: {data}")
-
         reversed_string = data[::-1]
         c_socket.send(reversed_string.encode())
 
@@ -64,10 +61,10 @@ if __name__ == '__main__':
 
         for (opt, val) in option:
             if opt == "-p":
-                port = int(val)
+                port = val
 
         serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        serversocket.bind((host, port))
+        serversocket.bind((host, int(port)))
         serversocket.listen(5)
         # Accepts 5 connections max from clients
 
