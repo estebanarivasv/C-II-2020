@@ -30,6 +30,8 @@ Y no algo así
 
 AABADDEBABEFBFAGGHD…
 
+tag: lock
+
 """
 
 import getopt
