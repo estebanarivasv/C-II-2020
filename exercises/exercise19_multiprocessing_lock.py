@@ -45,11 +45,12 @@ import os
 
 def runProcess(r, l, file_route):
     letter = random.choice(string.ascii_letters)
-    l.acquire()
     file = open(file_route, mode='a')
+    l.acquire()
     for i in range(int(r)):
         time.sleep(1)
         file.write(letter)
+        file.flush()
         print(f"Proc {os.getpid()} wrote in file letter {letter}")
     l.release()
     file.close()
@@ -76,6 +77,8 @@ if __name__ == '__main__':
         for i in range(proc_num):
             p = multiprocessing.Process(target=runProcess, args=(iterations, lock, file_route))
             p.start()
+
+        for i in range(proc_num):
             p.join()
 
     else:
