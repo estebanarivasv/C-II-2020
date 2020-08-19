@@ -44,12 +44,13 @@ import os
 def runProcess(r, l, file_route):
     letter = random.choice(string.ascii_letters)
     l.acquire()
+    file = open(file_route, mode='a')
     for i in range(int(r)):
         time.sleep(1)
-        file = open(file_route, mode='a')
         file.write(letter)
         print(f"Proc {os.getpid()} wrote in file letter {letter}")
     l.release()
+    file.close()
 
 
 if __name__ == '__main__':
