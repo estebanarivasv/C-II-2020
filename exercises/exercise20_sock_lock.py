@@ -28,8 +28,11 @@ import socket
 from ctypes import c_char_p
 
 
-def shell(client_sock, address):
+def send_message(client_sock, message):
+    client_sock.send(message.encode())
 
+
+def telnet_shell(client_sock, address, l):
     manager = multiprocessing.Manager()
 
     print(f"\nGot a connection from {str(address)}.")
@@ -37,40 +40,58 @@ def shell(client_sock, address):
     file_route = manager.Value(c_char_p, "/tmp/file.txt")
 
     while True:
-        msg = "Comandos:\n - ABRIR\n - AGREGAR\n - LEER\n - CERRAR\n - SALIR\n\n"
-        client_sock.send(msg.encode())
+        send_message(client_sock, "\nComands:\n - OPEN\n - ADD\n - READ\n - CLOSE\n\nOption: ")
 
         response = client_sock.recv(1024)
-        if response.decode() == "ABRIR\r\n":
-            message = "\nEnter file source: "
-            client_sock.send(message.encode())
-        elif response.decode() == "AGREGAR\r\n":
-            message = "\nEnter string to append: "
-            client_sock.send(message.encode())
+
+        if response.decode() == "OPEN\r\n":
+            send_message(client_sock, "\nEnter file source: ")
             reply = client_sock.recv(1024)
+            file_route.value = reply.decode()
+            l.acquire()
+            with open(file_route.value, "w") as file:
+                file.writelines("")
+                file.close()
+            l.release()
 
-
+        elif response.decode() == "ADD\r\n":
+            send_message(client_sock, "\nEnter string to append: ")
+            reply = client_sock.recv(1024)
+            l.acquire()
             with open(file_route.value, "a") as file:
-                file
+                file.write(reply.decode())
+                file.close()
+            l.release()
 
-        elif response.decode() == "LEER\r\n":
+        elif response.decode() == "READ\r\n":
+            l.acquire()
             with open(file_route.value, "r") as file:
                 lines = file.readlines()
+                file.close()
+            l.release()
             message = "\nFile content: \n"
             for line in lines:
                 message = message + line
-            client_sock.send(message.encode())
-        elif response.decode() == "CERRAR\r\n":
+            send_message(client_sock, message)
+        elif response.decode() == "CLOSE\r\n":
+            send_message(client_sock, "Closing file...")
+            l.acquire()
+            file = open(file_route.value, "r")
+            file.close()
+            l.release()
             break
         else:
-            message = "\nCommand entered not valid. Exiting..."
+            message = "\nNot a valid command. Exiting..."
             client_sock.send(message.encode())
             break
+    sys.exit(0)
 
 
 
 def start_stream_socket(server_port):
     host = ""
+
+    lock = multiprocessing.Lock()
 
     try:
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -83,15 +104,17 @@ def start_stream_socket(server_port):
 
     while True:
         client, addr = server.accept()
-        client_shell = multiprocessing.Process(target=shell, args=(client, addr))
+        client_shell = multiprocessing.Process(target=shell, args=(client, addr, lock))
         client_shell.start()
+        client_shell.join()
+        client.close()
 
 
 if __name__ == '__main__':
     port = 0
 
     if len(sys.argv[1:]) <= 1:
-        print("Usage: python ex20.py -p <port>")
+        print("Usage:\n server -> python ex20.py -p <port> \n client -> telnet 0.0.0.0 <port>")
     else:
         option, value = getopt.getopt(sys.argv[1:], "p:")
         for opt, val in option:
