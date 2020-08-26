@@ -33,59 +33,66 @@ def send_message(client_sock, message):
 
 
 def telnet_shell(client_sock, address, l):
-    manager = multiprocessing.Manager()
-
     print(f"\nGot a connection from {str(address)}.")
 
-    file_route = manager.Value(c_char_p, "/tmp/file.txt")
+    file_route = ""
+    file = None
 
     while True:
         send_message(client_sock, "\nComands:\n - OPEN\n - ADD\n - READ\n - CLOSE\n\nOption: ")
 
-        response = client_sock.recv(1024)
+        response = client_sock.recv(1024).upper()
 
         if response.decode() == "OPEN\r\n":
-            send_message(client_sock, "\nEnter file source: ")
-            reply = client_sock.recv(1024)
-            file_route.value = reply.decode()
-            l.acquire()
-            with open(file_route.value, "w") as file:
-                file.writelines("")
-                file.close()
-            l.release()
+            if file_route == "" and file is None:
+                send_message(client_sock, "\nEnter file source: ")
+                reply = client_sock.recv(1024)
+                file_route = reply.decode()
+                l.acquire()
+                file = open(file_route, "a")
+                l.release()
+                send_message(client_sock, "\nFile opened in path: " + file_route)
+            elif file is not None:
+                send_message(client_sock, "\nThe file is already opened in " + file_route)
 
         elif response.decode() == "ADD\r\n":
-            send_message(client_sock, "\nEnter string to append: ")
-            reply = client_sock.recv(1024)
-            l.acquire()
-            with open(file_route.value, "a") as file:
-                file.write(reply.decode())
-                file.close()
-            l.release()
+            if file is not None:
+                send_message(client_sock, "\nEnter string to append: ")
+                reply = client_sock.recv(1024).decode()
+                l.acquire()
+                file.writelines(reply)
+                file.flush()
+                l.release()
+            else:
+                send_message(client_sock, "\nPlease specify the file path first.")
 
         elif response.decode() == "READ\r\n":
-            l.acquire()
-            with open(file_route.value, "r") as file:
-                lines = file.readlines()
-                file.close()
-            l.release()
-            message = "\nFile content: \n"
-            for line in lines:
-                message = message + line
-            send_message(client_sock, message)
+            if file is not None:
+                with open(file_route, "r") as read_file:
+                    l.acquire()
+                    lines = read_file.readlines()
+                    l.release()
+                message = "\nFile content: \n"
+                for line in lines:
+                    message = message + line
+                send_message(client_sock, message)
+            else:
+                send_message(client_sock, "\nPlease specify the file path first.")
+
         elif response.decode() == "CLOSE\r\n":
-            send_message(client_sock, "Closing file...")
-            l.acquire()
-            file = open(file_route.value, "r")
-            file.close()
-            l.release()
-            break
+            if file is not None:
+                send_message(client_sock, "Closing file...")
+                l.acquire()
+                file.close()
+                l.release()
+                break
+            else:
+                send_message(client_sock, "\nPlease specify the file path first.")
         else:
             message = "\nNot a valid command. Exiting..."
             client_sock.send(message.encode())
             break
     sys.exit(0)
-
 
 
 def start_stream_socket(server_port):
@@ -104,7 +111,7 @@ def start_stream_socket(server_port):
 
     while True:
         client, addr = server.accept()
-        client_shell = multiprocessing.Process(target=shell, args=(client, addr, lock))
+        client_shell = multiprocessing.Process(target=telnet_shell, args=(client, addr, lock))
         client_shell.start()
         client_shell.join()
         client.close()
