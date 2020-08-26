@@ -28,23 +28,32 @@ tag: walkie
 import socket
 import sys
 import getopt
+import time
 
 
-def walkie_talkie(client_socket, g_bye):
+def send(server_sock):
+    goodbye = "over and out"
     while True:
-        while True:
-            msg = input("\nMessage to Alice: ")
-            if msg == goodbye.upper() or msg == goodbye:
-                break
-            else:
-                client_socket.send(msg.encode())
+        msg = input("\nMessage to Alice: ")
+        if msg.lower() == goodbye:
+            server_sock.send(msg.encode())
+            time.sleep(2)
+            break
+        else:
+            server_sock.send(msg.encode())
+    while True:
+        data = server_sock.recv(1024).decode()
+        if data.lower() != goodbye:
+            print(f"\n>>> Alice says: {data}")
+        else:
+            print(f"\n>>> Alice says: {data}")
+            time.sleep(2)
+            break
 
-        while True:
-            data = client_socket.recv(1024).decode()
-            if data == goodbye.upper() or data == goodbye:
-                break
-            else:
-                print(f"\n>>> Alice says: {data}")
+
+def walkie_talkie(server_socket):
+    while True:
+        send(server_socket)
 
 
 if __name__ == '__main__':
@@ -52,20 +61,19 @@ if __name__ == '__main__':
     if len(sys.argv[1:]) <= 1:
         print("Usage:\n   python3 exercise22_bob.py -p <port>")
     else:
+        host = ""
+        port = 0
+
         (option, value) = getopt.getopt(sys.argv[1:], "p:")
         for (opt, val) in option:
             if opt == "-p":
-                port = val
+                port = int(val)
         try:
-            c_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error:
             print('Failed to create socket')
             sys.exit()
 
-        host = "0.0.0.0"
-        port = 0
+        s_socket.connect((host, port))
 
-        c_socket.connect((host, port))
-
-        goodbye = "over and out"
-        walkie_talkie(c_socket, goodbye)
+        walkie_talkie(s_socket)

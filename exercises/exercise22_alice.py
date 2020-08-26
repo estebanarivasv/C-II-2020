@@ -27,30 +27,44 @@ import socket
 import sys
 import getopt
 import multiprocessing
+import time
+from termios import tcflush, TCIFLUSH
 
 
-def walkie_talkie(client_socket, address, goodbye):
+def receive(cl_socket):
+    goodbye = "over and out"
+    while True:
+        data = cl_socket.recv(1024).decode()
+        if data.lower() != goodbye:
+            print(f"\n>>> Bob says: {data}")
+        else:
+            print(f"\n>>> Bob says: {data}")
+            time.sleep(2)
+            break
+
+    while True:
+        msg = input("\nMessage to Bob: ")
+        if msg.lower() == goodbye:
+            cl_socket.send(msg.encode())
+            time.sleep(2)
+            break
+        else:
+            cl_socket.send(msg.encode())
+
+
+def walkie_talkie(client_socket, address):
     print(f"\nGot a connection from {str(address)}.")
     while True:
-        while True:
-            data = c_socket.recv(1024).decode()
-            if data == goodbye.upper() or data == goodbye:
-                break
-            else:
-                print(f"\n>>> Bob says: {data}")
-
-        while True:
-            msg = input("\nMessage to Bob: ")
-            if msg == goodbye.upper() or msg == goodbye:
-                break
-            else:
-                client_socket.send(msg.encode())
+        receive(client_socket)
 
 
 if __name__ == '__main__':
     if len(sys.argv[1:]) <= 1:
         print("Usage:\n   python3 exercise22_alice.py -p <port>")
     else:
+        host = ""
+        port = 0
+
         (option, value) = getopt.getopt(sys.argv[1:], "p:")
         for (opt, val) in option:
             if opt == "-p":
@@ -61,15 +75,10 @@ if __name__ == '__main__':
             print('Failed to create socket')
             sys.exit()
 
-        host = ""
-        port = 0
-
         s_socket.bind((host, port))
         s_socket.listen(5)  # Accepts 5 connections max from clients
 
-        goodbye = "over and out"
-
         while True:
             c_socket, addr = s_socket.accept()
-            client_proc = multiprocessing.Process(target=walkie_talkie, args=(c_socket, addr, goodbye))
+            client_proc = multiprocessing.Process(target=walkie_talkie, args=(c_socket, addr))
             client_proc.start()
