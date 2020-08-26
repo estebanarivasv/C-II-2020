@@ -25,8 +25,8 @@ tag: walkie
 """
 import socket
 import sys
+import os
 import getopt
-import multiprocessing
 import time
 
 
@@ -80,7 +80,6 @@ if __name__ == '__main__':
         s_socket.bind((host, port))
         s_socket.listen(5)  # Accepts 5 connections max from clients
 
-        while True:
-            c_socket, addr = s_socket.accept()
-            client_proc = multiprocessing.Process(target=walkie_talkie, args=(c_socket, addr))
-            client_proc.start()
+        c_socket, addr = s_socket.accept()
+
+        walkie_talkie(c_socket, addr)
