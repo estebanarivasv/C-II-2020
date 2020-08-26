@@ -30,12 +30,12 @@ def getsChecked(c, id):
     # Doctor's patient release time
     release_time = random.randint(5, 7)
 
-    print(f"\nPatient {id} arrives at the hospital. Available consulting rooms: {c.get_value()}")
+    print(f"\n >>> Patient {id} arrives at the hospital. Available consulting rooms: {c.get_value()}")
     c.acquire()
-    print(f"Patient {id} is now entering doctor's consulting room. Available consulting rooms: {c.get_value()}")
+    print(f"\n --> Patient {id} is now entering doctor's consulting room. Available consulting rooms: {c.get_value()}")
     time.sleep(release_time)
     c.release()
-    print(f"Patient {id} is leaving the hospital. Available consulting rooms: {c.get_value()}")
+    print(f"\n <<< Patient {id} is leaving the hospital. Available consulting rooms: {c.get_value()}")
 
 
 def generatesPeopleArriving(consulting_rooms):
