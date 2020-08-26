@@ -28,20 +28,10 @@ import sys
 import getopt
 import multiprocessing
 import time
-from termios import tcflush, TCIFLUSH
 
 
-def receive(cl_socket):
+def send(cl_socket):
     goodbye = "over and out"
-    while True:
-        data = cl_socket.recv(1024).decode()
-        if data.lower() != goodbye:
-            print(f"\n>>> Bob says: {data}")
-        else:
-            print(f"\n>>> Bob says: {data}")
-            time.sleep(2)
-            break
-
     while True:
         msg = input("\nMessage to Bob: ")
         if msg.lower() == goodbye:
@@ -52,10 +42,22 @@ def receive(cl_socket):
             cl_socket.send(msg.encode())
 
 
+def receive(cl_socket):
+    goodbye = "over and out"
+    while True:
+        data = cl_socket.recv(1024).decode()
+        if data.lower() != goodbye:
+            print(f"\n>>> Bob says: {data}")
+        else:
+            time.sleep(2)
+            break
+
+
 def walkie_talkie(client_socket, address):
     print(f"\nGot a connection from {str(address)}.")
     while True:
         receive(client_socket)
+        send(client_socket)
 
 
 if __name__ == '__main__':
