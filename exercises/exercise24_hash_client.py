@@ -39,6 +39,7 @@ Ejecución cliente:
 40b6ba3be46c03f4af4ebb5bdbc1cfee4da1ab6bd017b48f3d336aabdbcba6e0
 Donde la cadena de caracteres representa el resumen sha256 de la cadena pasada por argumento -c.
 
+tag: hash
 """
 import socket
 import sys
