@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
         s_socket.bind((host, port))
         s_socket.listen(5)  # Accepts 5 connections max from clients
-
+        
         c_socket, addr = s_socket.accept()
 
         walkie_talkie(c_socket, addr)
