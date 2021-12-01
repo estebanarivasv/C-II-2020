@@ -1,4 +1,4 @@
-# Python Parallelism
+# Computación II
 
 This repository contains practice examples of Parallelism in Python. I have worked with these main Python libraries:
 - sys
