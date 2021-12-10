@@ -23,3 +23,7 @@ class ConsoleView:
     @staticmethod
     def show_client_response(msg):
         print(stylize(msg, colored.fg("yellow")), end='')
+
+    @staticmethod
+    def show_info(msg):
+        print(stylize(msg, colored.fg("cyan")), end='')

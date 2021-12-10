@@ -1,1 +1,1 @@
-from main.controllers.server import ServerController
+from .server import ServerController
