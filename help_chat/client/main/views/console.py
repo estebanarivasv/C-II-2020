@@ -17,9 +17,14 @@ class ConsoleView:
         print(stylize(msg, colored.fg("red")), end='')
 
     @staticmethod
-    def show_user_input(msg):
-        print(stylize(msg, colored.fg("green")), end='')
+    def show_user_input():
+        print(stylize("\n\n --> ", colored.fg("green")), end='')
 
     @staticmethod
     def show_server_response(msg):
-        print(stylize(msg, colored.fg("yellow")), end='')
+        print(stylize('\n\n <--' + msg, colored.fg("yellow")), end='')
+
+    @staticmethod
+    def show_info(msg):
+        print(stylize(msg, colored.fg("cyan")), end='')
+

@@ -1,8 +1,9 @@
 import getopt
 import signal
-import socket
 import sys
+
 from main.views import ConsoleView
+from main.services import ClientService
 
 v = ConsoleView()
 
@@ -13,14 +14,7 @@ class ClientController:
         self.server_port = None
         self.user_department = None
         self.user_role = None
-        self.socket = None
-
-    def check_not_null(self):
-        for i in [self.server_host, self.server_port, self.user_department, self.user_role]:
-            if i is None:
-                return False
-            else:
-                return True
+        self.client_serv = ClientService()
 
     def load_connection_info(self):
         (opts, args) = getopt.getopt(sys.argv[1:], 'h:p:d:r:', ['host=', 'port=', 'department=', 'role='])
@@ -40,40 +34,46 @@ class ClientController:
                 else:
                     raise getopt.GetoptError
 
-            if not self.check_not_null():
-                raise Exception
+            for i in [self.server_host, self.server_port, self.user_department, self.user_role]:
+                if i is None:
+                    raise getopt.GetoptError
+                else:
+                    pass
 
         except getopt.GetoptError or TypeError:
             v.show_alert("\nUsage: client/app.py -h <host> -p <port> -d <department> -r <role>\n")
             sys.exit(0)
 
-    def create_socket(self):
+    def start_chat(self):
         try:
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        except socket.error as e:
-            v.show_warning(f"Socket error: {e}")
-            sys.exit()
+            # Send client config to establish communication
+            chat_info = str([self.user_role, self.user_department])
+            self.client_serv.send_to_server(chat_info)
 
-    def interruption_handler(self):
-        v.show_basic_message("Closing connection...")
-        self.socket.close()
+            msg_from_server = None
+            while msg_from_server != "/exit":
+                msg_from_server = self.client_serv.receive_from_server()
+                v.show_server_response(msg_from_server)
 
-    def handle_inputs_outputs(self):
-        # IF THE USER SENDS AN interrupt signal
+                v.show_user_input()
+                msg_to_server = input()
+                self.client_serv.send_to_server(msg_to_server)
+
+        except ConnectionRefusedError as e:
+            v.show_warning(f"Connection error: {e}\n")
+
+    def interruption_handler(self, s, f):
+        self.client_serv.close_socket()
+        sys.exit(0)
+
+    def main(self):
         signal.signal(signal.SIGINT, self.interruption_handler)
 
-        while True:
-            msg_from_server = self.socket.recv(1024).decode('utf-8')
-            v.show_server_response(f"\n\n <-- {msg_from_server}")
+        self.load_connection_info()
+        self.client_serv.socket.connect((self.server_host, self.server_port))
 
-            if msg_from_server == "\n" or "":
-                break
-
-
-            v.show_user_input("\n\n --> ")
-            msg_to_server = input().encode('utf-8')
-
-            self.socket.send(msg_to_server)
-
-
-            # todo: handle logging in order to skip "department" and "role"
+        v.show_info(f'\n --- "SUMAMOS" HELP CHAT SERVER --- \n\n'
+                    f' Connecting to server --> {self.server_host}:{self.server_port}.\n'
+                    f' You asked to talk to {str(self.user_department).upper()} SUPPORT.\n'
+                    f' Please wait...\n')
+        self.start_chat()
