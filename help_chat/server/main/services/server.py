@@ -4,7 +4,7 @@ import multiprocessing
 
 from main.views import ConsoleView
 from main.models import ClientModel
-from main.services import ChatService
+from main.services.chat import ChatService
 
 v = ConsoleView()
 
@@ -31,7 +31,7 @@ class ServerService:
     def send_to_client(client_sock: socket.socket, msg: str):
         return client_sock.send(msg.encode("utf-8"))
 
-    def accept_connection(self, client_sock, client_addr):
+    def handle_connection(self, client_sock, client_addr):
         # Get role and department from client
         chat_info = eval(self.get_from_client(client_sock))
         client = ClientModel(client_addr[0], client_addr[1], chat_info[0], chat_info[1], client_sock)

@@ -1,2 +1,2 @@
-from .server import ServerService
-from .chat import ChatService
+from main.services.server import ServerService
+from main.services.chat import ChatService

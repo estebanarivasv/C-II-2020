@@ -21,23 +21,16 @@ class ServerController:
         (opts, args) = getopt.getopt(sys.argv[1:], 'p:', ['port='])
         try:
             if len(opts) != 1:
-                raise getopt.GetoptError
-
+                raise getopt.GetoptError("Usage: server/app.py -p <port>")
             for (op, arg) in opts:
                 if op == '-p' or op == '--port':
                     self.port = int(arg)
-                else:
-                    raise getopt.GetoptError
-
-            if self.port is None:
-                raise getopt.GetoptError
-
         except getopt.GetoptError:
             v.show_alert("Usage: server/app.py -p <port>")
             sys.exit(0)
 
     def interruption_handler(self, s, f):
-        v.show_basic_message("Closing server...")
+        v.show_basic_message("\nClosing server...")
         self.server_serv.socket.close()
         sys.exit(0)
 
@@ -52,6 +45,6 @@ class ServerController:
 
         while True:
             c_socket, addr = self.server_serv.socket.accept()
-            client_proc = multiprocessing.Process(target=self.server_serv.accept_connection, args=(c_socket, addr))
+            client_proc = multiprocessing.Process(target=self.server_serv.handle_connection, args=(c_socket, addr))
             client_proc.daemon = True
             client_proc.start()
