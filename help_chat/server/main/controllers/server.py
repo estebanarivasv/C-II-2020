@@ -4,8 +4,11 @@ import signal
 import socket
 import sys
 
+from sqlalchemy.orm import sessionmaker
+
 from main.views import ConsoleView
 from main.services import ServerService
+from main.config import Base, engine
 
 v = ConsoleView()
 
@@ -35,16 +38,29 @@ class ServerController:
         sys.exit(0)
 
     def main(self):
+        # CTRL + C - Stops server
         signal.signal(signal.SIGINT, self.interruption_handler)
 
+        # Database configuration - SQL Alchemy
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        # Importing models
+        from main.models import OperatorModel
+        
+        Base.metadata.create_all(bind=engine)
+
         self.load_connection_info()
-        v.show_info(f'\n --- "SUMAMOS" HELP CHAT SERVER --- \n\n Server running @ {self.host}:{self.port}')
+        v.show_info(f'\n --- "SUMAMOS" HELP CHAT SERVER --- \n\n'
+                    f' Server running @ {self.host}:{self.port}')
 
         self.server_serv.socket.bind((self.host, self.port))
         self.server_serv.socket.listen()
 
         while True:
             c_socket, addr = self.server_serv.socket.accept()
-            client_proc = multiprocessing.Process(target=self.server_serv.handle_connection, args=(c_socket, addr))
+            client_proc = multiprocessing.Process(
+                target=self.server_serv.handle_connection,
+                args=(c_socket, addr))
             client_proc.daemon = True
             client_proc.start()
