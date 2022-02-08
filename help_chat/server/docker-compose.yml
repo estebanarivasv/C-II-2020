@@ -1,0 +1,17 @@
+version: '3.3'
+services:
+  db:
+    image: 'mysql:8.0.26'
+    container_name: HelpChat
+    restart: always
+    ports:
+      - '3306:3306'
+    environment:
+      - 'MYSQL_DATABASE=${MYSQL_DATABASE}'
+      - 'MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}'
+      - 'MYSQL_USER=${MYSQL_USER}'
+      - 'MYSQL_PASSWORD=${MYSQL_PASSWORD}'
+    cap_add:
+      - 'SYS_NICE'
+    volumes:
+      - './mysql/_data:/var/lib/mysql'
