@@ -9,3 +9,6 @@ class ClientModel:
         self.department = department
         self.role = role
         self.socket = socket
+
+    def __repr__(self):
+        return f"\n{str(self.port)} {self.host} {self.department} {str(self.socket)} {self.role}"
