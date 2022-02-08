@@ -18,13 +18,28 @@ class ConsoleView:
 
     @staticmethod
     def show_user_input():
-        print(stylize("\n\n --> ", colored.fg("green")), end='')
+        print(stylize("\n\n<YOU> ", colored.fg("green")), end='')
+
+    @staticmethod
+    def show_operator_input():
+        print(stylize("\n\n<YOU> ", colored.fg("orange_4a")), end='')
 
     @staticmethod
     def show_server_response(msg):
-        print(stylize('\n\n <--' + msg, colored.fg("yellow")), end='')
+        print(stylize('\n\n<SERVER> ' + msg, colored.fg("yellow")), end='')
 
     @staticmethod
     def show_info(msg):
         print(stylize(msg, colored.fg("cyan")), end='')
+
+    @staticmethod
+    def return_usage():
+        return "\nUsage: client/app.py -h <server_host> -p <server_port> -d <department> -r <role>\n"
+
+    @staticmethod
+    def return_welcome_msg(server_host, server_port):
+        return f'\n--- "SUMAMOS" HELP CHAT SERVER --- \n' \
+               f'\nConnecting to server --> {server_host}:{server_port}.' \
+
+
 

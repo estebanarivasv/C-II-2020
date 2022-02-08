@@ -1,9 +1,9 @@
 import getopt
-import signal
 import sys
 
 from main.views import ConsoleView
 from main.services import ClientService
+from main.services import OperatorService
 
 v = ConsoleView()
 
@@ -14,13 +14,12 @@ class ClientController:
         self.server_port = None
         self.user_department = None
         self.user_role = None
-        self.client_serv = ClientService()
 
     def load_connection_info(self):
         (opts, args) = getopt.getopt(sys.argv[1:], 'h:p:d:r:', ['host=', 'port=', 'department=', 'role='])
         try:
             if len(opts) != 4:
-                raise getopt.GetoptError
+                raise getopt.GetoptError(v.return_usage())
 
             for (op, arg) in opts:
                 if op == '-h' or op == '--host':
@@ -31,49 +30,27 @@ class ClientController:
                     self.user_department = arg
                 elif op == '-r' or op == '--role':
                     self.user_role = arg
-                else:
-                    raise getopt.GetoptError
 
             for i in [self.server_host, self.server_port, self.user_department, self.user_role]:
                 if i is None:
-                    raise getopt.GetoptError
-                else:
-                    pass
+                    raise getopt.GetoptError(v.return_usage())
 
         except getopt.GetoptError or TypeError:
-            v.show_alert("\nUsage: client/app.py -h <host> -p <port> -d <department> -r <role>\n")
+            v.show_alert(v.return_usage())
             sys.exit(0)
 
-    def start_chat(self):
-        try:
-            # Send client config to establish communication
-            chat_info = str([self.user_role, self.user_department])
-            self.client_serv.send_to_server(chat_info)
-
-            msg_from_server = None
-            while msg_from_server != "/exit":
-                msg_from_server = self.client_serv.receive_from_server()
-                v.show_server_response(msg_from_server)
-
-                v.show_user_input()
-                msg_to_server = input()
-                self.client_serv.send_to_server(msg_to_server)
-
-        except ConnectionRefusedError as e:
-            v.show_warning(f"Connection error: {e}\n")
-
-    def interruption_handler(self, s, f):
-        self.client_serv.close_socket()
-        sys.exit(0)
-
     def main(self):
-        signal.signal(signal.SIGINT, self.interruption_handler)
-
+        # Fetch data from parameters
         self.load_connection_info()
-        self.client_serv.socket.connect((self.server_host, self.server_port))
 
-        v.show_info(f'\n --- "SUMAMOS" HELP CHAT SERVER --- \n\n'
-                    f' Connecting to server --> {self.server_host}:{self.server_port}.\n'
-                    f' You asked to talk to {str(self.user_department).upper()} SUPPORT.\n'
-                    f' Please wait...\n')
-        self.start_chat()
+        # Set application mode: 'client' or 'operator'
+        if self.user_role == "client":
+            client_service = ClientService()
+            client_service.main(self.server_host,
+                                self.server_port,
+                                self.user_department)
+        elif self.user_role == "operator":        # Authenticate and get client data from Queue
+            operator_service = OperatorService()
+        else:
+            v.show_alert("Wrong input in user role.")
+            sys.exit(0)

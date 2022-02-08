@@ -8,7 +8,7 @@ from main.views import ConsoleView
 v = ConsoleView()
 
 
-class ClientService:
+class OperatorService:
     def __init__(self):
         self.client_host = socket.gethostbyname(socket.gethostname())
         self.client_port = 8090
@@ -26,6 +26,11 @@ class ClientService:
         sys.exit(0)
 
     def establish_connection(self, department):
+
+        v.show_info("OPERATOR CLIENT IN CONSTRUCTION")
+        input()
+
+        # TODO: HANDLE AUTHENTICATION
 
         chat_service = ChatService(self.to_server_socket)
 
