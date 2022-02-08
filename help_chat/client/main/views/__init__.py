@@ -1,1 +1,1 @@
-from .console import ConsoleView
+from main.views.console import ConsoleView

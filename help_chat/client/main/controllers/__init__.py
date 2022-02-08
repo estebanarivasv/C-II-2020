@@ -1,1 +1,1 @@
-from .client import ClientController
+from main.controllers.client import ClientController
