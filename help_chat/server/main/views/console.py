@@ -27,3 +27,12 @@ class ConsoleView:
     @staticmethod
     def show_info(msg):
         print(stylize(msg, colored.fg("cyan")), end='')
+
+    @staticmethod
+    def return_usage():
+        return "Usage: server/app.py -p <port>"
+
+    @staticmethod
+    def return_welcome_msg(host, port):
+        return f'\n--- "SUMAMOS" HELP CHAT SERVER --- ' \
+               f'\n\nServer running @ {host}:{port}'
