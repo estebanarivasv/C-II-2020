@@ -51,7 +51,8 @@ class ClientService:
             v.show_warning(f"CONNECTION ERROR:\n{e}\n")
 
         chat_service = ChatService(self.to_server_socket)
-
+        chat_service.start_conversation()
+        """
         # Receive messages up until the server establishes connection with operator
         while True:
             msg = chat_service.receive_message()
@@ -60,6 +61,6 @@ class ClientService:
                 chat_service.start_conversation()
                 break
             v.show_server_response(msg)
-
+        """
         self.close_server_socket()
         sys.exit(0)

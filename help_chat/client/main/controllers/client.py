@@ -49,8 +49,13 @@ class ClientController:
             client_service.main(self.server_host,
                                 self.server_port,
                                 self.user_department)
-        elif self.user_role == "operator":        # Authenticate and get client data from Queue
+
+        # Authenticate and get client data from Queue
+        elif self.user_role == "operator":
             operator_service = OperatorService()
+            operator_service.main(self.server_host,
+                                  self.server_port,
+                                  self.user_department)
         else:
             v.show_alert("Wrong input in user role.")
             sys.exit(0)
