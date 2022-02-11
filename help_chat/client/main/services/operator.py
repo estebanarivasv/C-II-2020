@@ -24,7 +24,14 @@ class OperatorService:
         self.close_server_socket()
         sys.exit(0)
 
-    def establish_connection(self, department):
+    def connect_to_server(self, host, port):
+        try:
+            self.server_socket.connect((host, port))
+        except Exception as e:
+            v.show_warning(f"\n\nCONNECTION ERROR: {e}\n")
+            sys.exit(0)
+
+    def send_conn_info(self, department):
 
         chat_service = ChatService(self.server_socket)
 
@@ -32,37 +39,38 @@ class OperatorService:
             # Send client data to establish communication with the server
             chat_service.send_message(str(["operator", department]))
 
-            v.show_server_response(chat_service.receive_message())
-
         except ConnectionRefusedError as e:
             v.show_warning(f"Connection error: {e}\n")
 
+    def is_authenticated(self):
+        chat = ChatService(self.server_socket)
+        for i in range(2):
+            v.show_server_response(chat.receive_message())
+            msg = v.ask_user_input()
+            chat.send_message(msg)
+        status = chat.receive_message()
+        v.show_server_response(status)
+        if status == "OK":
+            return True
+        else:
+            return False
+
     def main(self, host, port, department):
-        # CTRL + C - Stops client
+        # Signal TERM handler --- CTRL + C - Stops client
         signal.signal(signal.SIGINT, self.interruption_handler)
 
+        # Print welcome message
         v.show_info(v.return_welcome_msg(host, port))
 
-        try:
-            self.server_socket.connect((host, port))
-            self.establish_connection(department)
-        except TimeoutError or BrokenPipeError or ConnectionRefusedError as e:
-            v.show_warning(f"CONNECTION ERROR:\n{e}\n")
+        self.connect_to_server(host, port)
+        self.send_conn_info(department)
+        status = self.is_authenticated()
 
-        # TODO: Authenticate
+        print("\nlo que sigue no fue checkeado")
 
-        chat_service = ChatService(self.server_socket)
-        chat_service.start_conversation()
-        """
-        # Receive messages up until the server establishes connection with operator
-        while True:
-            msg = chat_service.receive_message()
-            if msg == "Redirecting with operator...":
-                v.show_server_response(msg)
-                chat_service.start_conversation()
-                break
-            v.show_server_response(msg)
-        """
+        if status is True:
+            chat_service = ChatService(self.server_socket)
+            chat_service.start_conversation()
 
         self.close_server_socket()
         sys.exit(0)
