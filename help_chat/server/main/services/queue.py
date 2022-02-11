@@ -1,7 +1,6 @@
 import socket
 import multiprocessing
 
-from main.models import ClientModel
 from main.views import ConsoleView
 
 v = ConsoleView()
@@ -13,12 +12,11 @@ class QueueService:
     def __init__(self):
         self.queue = multiprocessing.Queue()
 
-    def insert_client_to_queue(self, client: ClientModel):
-        self.queue.put(client)
+    def insert_sock_to_queue(self, sock: socket.socket):
+        self.queue.put(sock)
 
-    def get_client_from_queue(self):
+    def get_sock_from_queue(self):
         return self.queue.get()
 
     def get_queue_size(self):
         return self.queue.qsize()
-
