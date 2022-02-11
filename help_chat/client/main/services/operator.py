@@ -9,62 +9,66 @@ v = ConsoleView()
 
 
 class OperatorService:
+
     def __init__(self):
-        self.client_host = socket.gethostbyname(socket.gethostname())
-        self.client_port = 8090
         try:
-            self.to_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as e:
             v.show_warning(f"Socket error: {e}")
             sys.exit(0)
 
     def close_server_socket(self):
-        self.to_server_socket.close()
+        self.server_socket.close()
 
     def interruption_handler(self, s, f):
         self.close_server_socket()
         sys.exit(0)
 
-    def establish_connection(self, department):
+    def connect_to_server(self, host, port):
+        try:
+            self.server_socket.connect((host, port))
+        except Exception as e:
+            v.show_warning(f"\n\nCONNECTION ERROR: {e}\n")
+            sys.exit(0)
 
-        v.show_info("OPERATOR CLIENT IN CONSTRUCTION")
-        input()
+    def send_conn_info(self, department):
 
-        # TODO: HANDLE AUTHENTICATION
-
-        chat_service = ChatService(self.to_server_socket)
-
+        chat_service = ChatService(self.server_socket)
         try:
             # Send client data to establish communication with the server
-            chat_service.send_message(str(["client", department]))
-
-            v.show_server_response(chat_service.receive_message())
-
-        except ConnectionRefusedError as e:
+            chat_service.send_message(str(["operator", department]))
+        except Exception as e:
             v.show_warning(f"Connection error: {e}\n")
 
-    def main(self, host, port, department):
-        # CTRL + C - Stops client
-        signal.signal(signal.SIGINT, self.interruption_handler)
+    def is_authenticated(self):
+        chat = ChatService(self.server_socket)
+        for i in range(2):
+            v.show_server_response(chat.receive_message())
+            msg = v.ask_user_input()
+            chat.send_message(msg)
+        status = chat.receive_message()
+        v.show_server_response(status)
+        if status == "OK":
+            return True
+        else:
+            return False
 
+    def main(self, host, port, department):
+        # Signal TERM handler --- CTRL + C - Stops client
+        signal.signal(signal.SIGINT, self.interruption_handler)
+        chat_service = ChatService(self.server_socket)
+
+        # Print welcome message
         v.show_info(v.return_welcome_msg(host, port))
 
-        try:
-            self.to_server_socket.connect((host, port))
-            self.establish_connection(department)
-        except TimeoutError or BrokenPipeError or ConnectionRefusedError as e:
-            v.show_warning(f"CONNECTION ERROR:\n{e}\n")
+        self.connect_to_server(host, port)
+        self.send_conn_info(department)
+        status = self.is_authenticated()
 
-        chat_service = ChatService(self.to_server_socket)
-
-        # Receive messages up until the server establishes connection with operator
-        while True:
-            msg = chat_service.receive_message()
-            if msg == "Redirecting with operator...":
-                v.show_server_response(msg)
+        if status is True:
+            while True:
+                chat_service = ChatService(self.server_socket)
                 chat_service.start_conversation()
-                break
-            v.show_server_response(msg)
 
         self.close_server_socket()
         sys.exit(0)

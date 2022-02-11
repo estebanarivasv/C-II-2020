@@ -17,12 +17,12 @@ class ConsoleView:
         print(stylize(msg, colored.fg("red")), end='')
 
     @staticmethod
-    def show_user_input():
-        print(stylize("\n\n<YOU> ", colored.fg("green")), end='')
+    def ask_user_input():
+        return input(stylize("\n\n<YOU> ", colored.fg("green")))
 
     @staticmethod
-    def show_operator_input():
-        print(stylize("\n\n<YOU> ", colored.fg("orange_4a")), end='')
+    def show_operator_response(msg, operator_name: str):
+        print(stylize(f"\n\n<{operator_name.upper()}> " + msg, colored.fg("orange_4a")), end='')
 
     @staticmethod
     def show_server_response(msg):
@@ -38,8 +38,5 @@ class ConsoleView:
 
     @staticmethod
     def return_welcome_msg(server_host, server_port):
-        return f'\n--- "SUMAMOS" HELP CHAT SERVER --- \n' \
-               f'\nConnecting to server --> {server_host}:{server_port}.' \
-
-
-
+        return f"\n--- 'SUMAMOS' HELP CHAT SERVER --- \n" \
+               f"\nConnecting to server --> {server_host}:{server_port}."

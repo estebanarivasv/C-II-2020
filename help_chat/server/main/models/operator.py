@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, Boolean
 
 class OperatorModel(Base):
 
-    __tablename__ = 'operators'
+    __tablename__ = 'operator'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(50))
@@ -13,4 +13,4 @@ class OperatorModel(Base):
     department = Column(String(50))
 
     def __repr__(self):
-        return f"<User({self.id}, {self.host}, {self.department}, {self.role})>"
+        return f"<User({self.id}, {self.name}, {self.username}, {self.department})>"
