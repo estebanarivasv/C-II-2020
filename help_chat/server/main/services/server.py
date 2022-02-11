@@ -2,11 +2,12 @@ import socket
 import sys
 import multiprocessing
 
+from main.config import session
 from main.services.chat import ChatService
 from main.services.chat_room import ChatRoomService
 from main.services.queue import QueueService
 from main.views import ConsoleView
-from main.models import ClientModel
+from main.models import ClientModel, OperatorModel
 
 v = ConsoleView()
 
@@ -17,64 +18,90 @@ class ServerService:
         self.technical_service = QueueService()
         self.administrative_service = QueueService()
         self.sales_service = QueueService()
-
         try:
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as e:
             v.show_warning(f"Socket error: {e}\n")
             sys.exit(0)
 
-    def handle_connection(self, client_sock, client_addr):
+    def get_client_data(self, client_sock: socket.socket):
+        chat = ChatService(client_sock)
 
-        chat_service = ChatService(client_sock)
+        # Parsing role and department from str to list
+        return eval(chat.receive_message())
 
-        # Get role and department from client
-        chat_info = eval(chat_service.receive_message())  # Parsing from str to list
+    def guide_client(self, client_sock: socket.socket, client: ClientModel):
+        chat = ChatService(client_sock)
 
-        # Setting client data
+        chat.send_message(
+            f'You asked to talk with {str(client.department).upper()} SUPPORT.'
+            f'\nPlease wait...\n'
+        )
+
+        if client.department == 'technical':
+            self.technical_service.insert_client_to_queue(client)
+        elif client.department == 'administrative':
+            self.administrative_service.insert_client_to_queue(client)
+        elif client.department == 'sales':
+            self.sales_service.insert_client_to_queue(client)
+        else:
+            self.server_socket.close()
+
+    def authenticate_operator(self, client_sock: socket.socket):
+        chat = ChatService(client_sock)
+        chat.send_message("\nUsername: ")
+        username = chat.receive_message()
+        chat.send_message("\nPassword: ")
+        password = chat.receive_message()
+        try:
+            operator_from_db = session.query(OperatorModel).filter_by(username=username).first()
+            if operator_from_db is not None and operator_from_db.password == password:
+                chat.send_message("OK")
+            else:
+                chat.send_message("WRONG CREDENTIALS")
+        except Exception as e:
+            v.show_warning(f"\nQUERY ERROR: {e}")
+            chat.send_message("WRONG CREDENTIALS")
+
+    def get_client_from_queue(self, department):
+        if department == 'technical':
+            return self.technical_service.get_client_from_queue()
+        elif department == 'administrative':
+            return self.administrative_service.get_client_from_queue()
+        elif department == 'sales':
+            return self.sales_service.get_client_from_queue()
+        else:
+            self.server_socket.close()
+            return None
+
+    def guide_operator(self, client_sock: socket.socket, operator: ClientModel):
+        self.authenticate_operator(client_sock)
+
+        while True:
+            # TODO CHECK IF QUEUE HAS ELEMENTS
+            client = self.get_client_from_queue(operator.department)
+            print("lo que sigue no fue checkeado")
+            if client is not None:
+                chat_room_service = ChatRoomService(client, operator)
+                chat_room_service.start_chat()
+
+    def handle_connection(self, client_sock: socket.socket, client_addr):
+
+        # Create entity instance
+        client_data = self.get_client_data(client_sock)
         client = ClientModel(
             host=client_addr[0],
             port=client_addr[1],
-            department=chat_info[1],
-            role=chat_info[0],
+            department=client_data[1],
+            role=client_data[0],
             socket=client_sock
         )
-
-        v.show_alert(f"\n\nNew connection received - {client_addr[0]}:{client_addr[1]}.")
-
-        # TODO: Delete
-        print("\nSOCKET VALUE: ", client_sock)
+        v.show_alert(f"New connection received - {client_addr[0]}:{client_addr[1]}.\n")
 
         if client.role == 'client':
-            chat_service.send_message(
-                f'You asked to talk with {str(client.department).upper()} SUPPORT.'
-                f'\nPlease wait...\n'
-            )
-
-            if client.department == 'technical':
-                self.technical_service.insert_client_to_queue(client)
-            elif client.department == 'administrative':
-                self.administrative_service.insert_client_to_queue(client)
-            elif client.department == 'sales':
-                self.sales_service.insert_client_to_queue(client)
-            else:
-                self.server_socket.close()
-
+            self.guide_client(client_sock, client)
         elif client.role == 'operator':
-            # TODO: self.authenticate_operator()
-            while True:
-                operator = client
-                if client.department == 'technical':
-                    client = self.technical_service.get_client_from_queue()
-                elif client.department == 'administrative':
-                    client = self.administrative_service.get_client_from_queue()
-                elif client.department == 'sales':
-                    client = self.sales_service.get_client_from_queue()
-                else:
-                    self.server_socket.close()
-
-                chat_room_service = ChatRoomService(client, operator)
-                chat_room_service.start_chat()
+            self.guide_operator(client_sock, client)
 
     def main(self, server_host, server_port):
         # Make port reusable
