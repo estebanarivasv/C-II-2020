@@ -15,15 +15,3 @@ class ChatService:
 
     def send_message(self, msg: str):
         self.sock.send(msg.encode("utf-8"))
-    """
-    # Todo: check this
-    def start_conversation(self):
-        msg = ""
-        while msg != "/exit":
-            msg = self.receive_message()
-            v.show_server_response(msg)
-
-            v.show_user_input()
-            self.send_message(input())
-        self.sock.close()
-    """
