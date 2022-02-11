@@ -1,6 +1,8 @@
 import socket
 import sys
 import multiprocessing
+import time
+import pickle
 
 from main.config import session
 from main.services.chat import ChatService
@@ -30,23 +32,6 @@ class ServerService:
         # Parsing role and department from str to list
         return eval(chat.receive_message())
 
-    def guide_client(self, client_sock: socket.socket, client: ClientModel):
-        chat = ChatService(client_sock)
-
-        chat.send_message(
-            f'You asked to talk with {str(client.department).upper()} SUPPORT.'
-            f'\nPlease wait...\n'
-        )
-
-        if client.department == 'technical':
-            self.technical_service.insert_client_to_queue(client)
-        elif client.department == 'administrative':
-            self.administrative_service.insert_client_to_queue(client)
-        elif client.department == 'sales':
-            self.sales_service.insert_client_to_queue(client)
-        else:
-            self.server_socket.close()
-
     def authenticate_operator(self, client_sock: socket.socket):
         chat = ChatService(client_sock)
         chat.send_message("\nUsername: ")
@@ -63,49 +48,78 @@ class ServerService:
             v.show_warning(f"\nQUERY ERROR: {e}")
             chat.send_message("WRONG CREDENTIALS")
 
+    def put_client_in_queue(self, client_sock: socket.socket, department):
+        if department == 'technical':
+            self.technical_service.insert_sock_to_queue(client_sock)
+        elif department == 'administrative':
+            self.administrative_service.insert_sock_to_queue(client_sock)
+        elif department == 'sales':
+            self.sales_service.insert_sock_to_queue(client_sock)
+
     def get_client_from_queue(self, department):
         if department == 'technical':
-            return self.technical_service.get_client_from_queue()
+            return self.technical_service.get_sock_from_queue()
         elif department == 'administrative':
-            return self.administrative_service.get_client_from_queue()
+            return self.administrative_service.get_sock_from_queue()
         elif department == 'sales':
-            return self.sales_service.get_client_from_queue()
+            return self.sales_service.get_sock_from_queue()
         else:
-            self.server_socket.close()
             return None
 
-    def guide_operator(self, client_sock: socket.socket, operator: ClientModel):
-        self.authenticate_operator(client_sock)
+    def get_queue_size(self, department):
+        if department == 'technical':
+            return self.technical_service.get_queue_size()
+        elif department == 'administrative':
+            return self.administrative_service.get_queue_size()
+        elif department == 'sales':
+            return self.sales_service.get_queue_size()
+
+    def guide_operator(self, operator_sock: socket.socket, operator_department):
+        self.authenticate_operator(operator_sock)
 
         while True:
-            # TODO CHECK IF QUEUE HAS ELEMENTS
-            client = self.get_client_from_queue(operator.department)
-            print("lo que sigue no fue checkeado")
-            if client is not None:
-                chat_room_service = ChatRoomService(client, operator)
-                chat_room_service.start_chat()
+            # TODO DELETE
+            print(f"\n\n{operator_department} queue size", self.get_queue_size(operator_department))
+            if self.get_queue_size(operator_department) > 0:
+                client_sock = self.get_client_from_queue(operator_department)
+
+                # TODO DELETE
+                print("client sock from queue: ", client_sock)
+
+                if client_sock is not None:
+                    chat_room_service = ChatRoomService(client_sock, operator_sock)
+                    chat_room_service.start_chat()
+            time.sleep(15)
+
+    def guide_client(self, client_sock: socket.socket, client_department):
+        chat = ChatService(client_sock)
+
+        chat.send_message(
+            f'You asked to talk with {str(client_department).upper()} SUPPORT.'
+            f'\nPlease wait...\n'
+        )
+
+        self.put_client_in_queue(client_sock, client_department)
 
     def handle_connection(self, client_sock: socket.socket, client_addr):
 
         # Create entity instance
         client_data = self.get_client_data(client_sock)
-        client = ClientModel(
-            host=client_addr[0],
-            port=client_addr[1],
-            department=client_data[1],
-            role=client_data[0],
-            socket=client_sock
-        )
-        v.show_alert(f"New connection received - {client_addr[0]}:{client_addr[1]}.\n")
+        client_department = client_data[1]
+        client_role = client_data[0]
 
-        if client.role == 'client':
-            self.guide_client(client_sock, client)
-        elif client.role == 'operator':
-            self.guide_operator(client_sock, client)
+        v.show_alert(f"\nNew connection received - {client_addr[0]}:{client_addr[1]}.\n")
+
+        if client_role == 'client':
+            self.guide_client(client_sock, client_department)
+        elif client_role == 'operator':
+            self.guide_operator(client_sock, client_department)
 
     def main(self, server_host, server_port):
         # Make port reusable
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        multiprocessing.allow_connection_pickling()
 
         v.show_info(v.return_welcome_msg(server_host, server_port))
 
