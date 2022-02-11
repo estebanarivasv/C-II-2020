@@ -18,7 +18,7 @@ class ServerController:
         self.port = None
         self.server_service = ServerService()
 
-    def load_connection_info(self):
+    def load_parameters(self):
         (opts, args) = getopt.getopt(sys.argv[1:], 'p:', ['port='])
         try:
             if len(opts) != 1:
@@ -31,7 +31,7 @@ class ServerController:
             sys.exit(0)
 
     def interruption_handler(self, s, f):
-        v.show_basic_message("\nClosing server...")
+        v.show_basic_message("\nClosing server...\n")
         self.server_service.server_socket.close()
         sys.exit(0)
 
@@ -40,10 +40,8 @@ class ServerController:
         signal.signal(signal.SIGINT, self.interruption_handler)
 
         # Database configuration - SQL Alchemy
-        Session = sessionmaker(bind=engine)
-        session = Session()
         from main.models import OperatorModel       # Importing models
         Base.metadata.create_all(bind=engine)
 
-        self.load_connection_info()     # Receive parameters' values
+        self.load_parameters()     # Receive parameters' values
         self.server_service.main(self.host, self.port)
