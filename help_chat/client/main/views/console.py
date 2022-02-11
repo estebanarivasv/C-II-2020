@@ -39,4 +39,4 @@ class ConsoleView:
     @staticmethod
     def return_welcome_msg(server_host, server_port):
         return f"\n--- 'SUMAMOS' HELP CHAT SERVER --- \n" \
-                               "\nConnecting to server --> {server_host}:{server_port}."
+               f"\nConnecting to server --> {server_host}:{server_port}."
