@@ -23,6 +23,6 @@ class ChatService:
             print(self.sock)
             v.show_server_response(msg)
 
-            v.show_user_input()
-            self.send_message(input())
+            msg = v.ask_user_input()
+            self.send_message(msg)
         self.sock.close()

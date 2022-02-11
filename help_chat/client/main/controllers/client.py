@@ -15,7 +15,7 @@ class ClientController:
         self.user_department = None
         self.user_role = None
 
-    def load_connection_info(self):
+    def load_parameters(self):
         (opts, args) = getopt.getopt(sys.argv[1:], 'h:p:d:r:', ['host=', 'port=', 'department=', 'role='])
         try:
             if len(opts) != 4:
@@ -41,7 +41,7 @@ class ClientController:
 
     def main(self):
         # Fetch data from parameters
-        self.load_connection_info()
+        self.load_parameters()
 
         # Set application mode: 'client' or 'operator'
         if self.user_role == "client":

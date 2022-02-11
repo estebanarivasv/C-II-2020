@@ -47,8 +47,9 @@ class ClientService:
         try:
             self.to_server_socket.connect((host, port))
             self.establish_connection(department)
-        except TimeoutError or BrokenPipeError or ConnectionRefusedError as e:
-            v.show_warning(f"CONNECTION ERROR:\n{e}\n")
+        except Exception as e:
+            v.show_warning(f"\n\nCONNECTION ERROR: {e}\n\n")
+            sys.exit(0)
 
         chat_service = ChatService(self.to_server_socket)
         chat_service.start_conversation()
