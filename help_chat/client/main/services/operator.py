@@ -12,16 +12,20 @@ class OperatorService:
 
     def __init__(self):
         try:
+            # Socket that connects to the client
+            self.operator_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # This socket talks with the server
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as e:
             v.show_warning(f"Socket error: {e}")
             sys.exit(0)
 
-    def close_server_socket(self):
+    def close_sockets(self):
+        self.operator_socket.close()
         self.server_socket.close()
 
     def interruption_handler(self, s, f):
-        self.close_server_socket()
+        self.close_sockets()
         sys.exit(0)
 
     def connect_to_server(self, host, port):
@@ -63,12 +67,15 @@ class OperatorService:
 
         self.connect_to_server(host, port)
         self.send_conn_info(department)
-        status = self.is_authenticated()
 
-        if status is True:
+        if self.is_authenticated() is True:
+            # This loop iterates to get a new customer in the queue
             while True:
                 chat_service = ChatService(self.server_socket)
                 chat_service.start_conversation()
 
-        self.close_server_socket()
+                # Acá deberia recibir los datos del cliente con el que tiene que hablar
+                # Despues debe pedir nuevamente que le pasen otro cliente
+
+        self.close_sockets()
         sys.exit(0)

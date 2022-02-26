@@ -2,7 +2,6 @@ import getopt
 import signal
 import socket
 import sys
-from sqlalchemy.orm import sessionmaker
 
 from main.views import ConsoleView
 from main.services import ServerService
@@ -36,12 +35,12 @@ class ServerController:
         sys.exit(0)
 
     def main(self):
+        self.load_parameters()     # Receive parameters' values
+
         # CTRL + C - Stops server
         signal.signal(signal.SIGINT, self.interruption_handler)
 
         # Database configuration - SQL Alchemy
         from main.models import OperatorModel       # Importing models
         Base.metadata.create_all(bind=engine)
-
-        self.load_parameters()     # Receive parameters' values
         self.server_service.main(self.host, self.port)

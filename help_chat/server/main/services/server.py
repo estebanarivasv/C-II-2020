@@ -2,14 +2,13 @@ import socket
 import sys
 import multiprocessing
 import time
-import pickle
 
 from main.config import session
 from main.services.chat import ChatService
 from main.services.chat_room import ChatRoomService
 from main.services.queue import QueueService
 from main.views import ConsoleView
-from main.models import ClientModel, OperatorModel
+from main.models import OperatorModel
 
 v = ConsoleView()
 
@@ -39,14 +38,16 @@ class ServerService:
         chat.send_message("\nPassword: ")
         password = chat.receive_message()
         try:
-            operator_from_db = session.query(OperatorModel).filter_by(username=username).first()
+            operator_from_db = session.query(OperatorModel).filter(OperatorModel.username == username).first()
+            # TODO: DELETE
+            print(operator_from_db)
             if operator_from_db is not None and operator_from_db.password == password:
                 chat.send_message("OK")
             else:
                 chat.send_message("WRONG CREDENTIALS")
         except Exception as e:
             v.show_warning(f"\nQUERY ERROR: {e}")
-            chat.send_message("WRONG CREDENTIALS")
+            chat.send_message("INTERNAL ERROR")
 
     def put_client_in_queue(self, client_sock: socket.socket, department):
         if department == 'technical':
@@ -86,9 +87,10 @@ class ServerService:
                 # TODO DELETE
                 print("client sock from queue: ", client_sock)
 
-                if client_sock is not None:
-                    chat_room_service = ChatRoomService(client_sock, operator_sock)
-                    chat_room_service.start_chat()
+                # TODO ESTO SE HARIA DESDE EL CLIENTE DEL OPERADOR
+                # if client_sock is not None:
+                #     chat_room_service = ChatRoomService(client_sock, operator_sock)
+                #     chat_room_service.start_chat()
             time.sleep(15)
 
     def guide_client(self, client_sock: socket.socket, client_department):
@@ -98,8 +100,9 @@ class ServerService:
             f'You asked to talk with {str(client_department).upper()} SUPPORT.'
             f'\nPlease wait...\n'
         )
-
+        # TODO: Acá en vez del sock deberia ser la ip por lo menos.
         self.put_client_in_queue(client_sock, client_department)
+        # TODO: Cerramos aca el socket? si total el otro va a estar esperando que se conecte el operator
 
     def handle_connection(self, client_sock: socket.socket, client_addr):
 
@@ -118,8 +121,6 @@ class ServerService:
     def main(self, server_host, server_port):
         # Make port reusable
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        multiprocessing.allow_connection_pickling()
 
         v.show_info(v.return_welcome_msg(server_host, server_port))
 
