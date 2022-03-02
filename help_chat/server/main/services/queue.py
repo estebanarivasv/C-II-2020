@@ -12,10 +12,10 @@ class QueueService:
     def __init__(self):
         self.queue = multiprocessing.Queue()
 
-    def insert_sock_to_queue(self, sock: socket.socket):
-        self.queue.put(sock)
+    def insert_sock_addr_to_queue(self, addr: ()):
+        self.queue.put(addr)
 
-    def get_sock_from_queue(self):
+    def get_sock_addr_from_queue(self):
         return self.queue.get()
 
     def get_queue_size(self):

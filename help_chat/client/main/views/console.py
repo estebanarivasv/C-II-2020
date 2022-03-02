@@ -21,12 +21,8 @@ class ConsoleView:
         return input(stylize("\n\n<YOU> ", colored.fg("green")))
 
     @staticmethod
-    def show_operator_response(msg, operator_name: str):
-        print(stylize(f"\n\n<{operator_name.upper()}> " + msg, colored.fg("orange_4a")), end='')
-
-    @staticmethod
-    def show_server_response(msg):
-        print(stylize('\n\n<SERVER> ' + msg, colored.fg("yellow")), end='')
+    def show_response(msg):
+        print(stylize('\n\n>>> ' + msg, colored.fg("yellow")), end='')
 
     @staticmethod
     def show_info(msg):

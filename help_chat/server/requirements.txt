@@ -1,3 +1,4 @@
 colored==1.4.3
 sqlalchemy==1.4.31
 python-dotenv==0.19.2
+mysqlclient==2.1.0

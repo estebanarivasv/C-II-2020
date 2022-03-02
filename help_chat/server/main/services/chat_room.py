@@ -1,6 +1,5 @@
 import socket
 
-from main.models import ClientModel
 from main.services.chat import ChatService
 from main.views import ConsoleView
 
