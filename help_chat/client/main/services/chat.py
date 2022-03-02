@@ -18,19 +18,10 @@ class ChatService:
         self.sock.send(msg.encode("utf-8"))
 
     def start_conversation(self):
-        while True:
+        msg = ""
+        while msg != "/exit":
             msg = self.receive_message()
-            # TODO DELETE
-            if msg == "START":
-                print("\nStarting chat...\n")
-                while True:
-                    msg = self.receive_message()
-                    v.show_server_response(msg)
+            v.show_response(msg)
 
-                    msg = v.ask_user_input()
-                    self.send_message(msg)
-                    if msg == "/exit":
-                        break
-            if msg == "/exit":
-                break
-            time.sleep(2)
+            msg = v.ask_user_input()
+            self.send_message(msg)
