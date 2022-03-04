@@ -13,7 +13,7 @@ v = ConsoleView()
 class ServerController:
 
     def __init__(self):
-        self.host = socket.gethostbyname(socket.gethostname())
+        self.host = ''      # 0.0.0.0
         self.port = None
         self.server_service = ServerService()
 
