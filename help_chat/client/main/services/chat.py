@@ -1,5 +1,4 @@
 import socket
-import time
 
 from main.views import ConsoleView
 
@@ -20,8 +19,16 @@ class ChatService:
     def start_conversation(self):
         msg = ""
         while msg != "/exit":
-            msg = self.receive_message()
-            v.show_response(msg)
+            from_msg = self.receive_message()
 
-            msg = v.ask_user_input()
-            self.send_message(msg)
+            if from_msg == "/exit":
+                break
+
+            if from_msg:
+                v.show_response(from_msg)
+                msg = from_msg
+
+            to_msg = v.ask_user_input()
+            if to_msg:
+                self.send_message(to_msg)
+                msg = to_msg
