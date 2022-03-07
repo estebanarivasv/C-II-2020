@@ -1,6 +1,5 @@
 import getopt
 import signal
-import socket
 import sys
 
 from main.views import ConsoleView
@@ -43,4 +42,5 @@ class ServerController:
         # Database configuration - SQL Alchemy
         from main.models import OperatorModel       # Importing models
         Base.metadata.create_all(bind=engine)
+
         self.server_service.main(self.host, self.port)
