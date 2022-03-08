@@ -63,7 +63,7 @@ class OperatorService:
 
         status = chat.receive_message()
         v.show_response(status + "\n")
-        if status == "OK":
+        if status == "<SERVER> OK":
             return True
         else:
             return False
