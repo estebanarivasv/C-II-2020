@@ -54,8 +54,7 @@ class ClientController:
         Main method that interacts with the ClientService and the OperatorService
         """
 
-        # Fetch data from parameters
-        self.load_parameters()
+        self.load_parameters()  # Fetch data from parameters
 
         # Set application mode: 'client' or 'operator'
         if self.user_role == "client":

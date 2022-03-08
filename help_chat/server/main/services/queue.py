@@ -10,16 +10,13 @@ class QueueService:
 
     # FIFO
     def __init__(self):
-        self.queue = Manager().list()
+        self.queue = Manager().list()  # Holds the list and allows other processes to manipulate it using a proxy
 
     def insert_pipe_serv_to_queue(self, pipe: PipeService):
-        # Add socket object to the end
-        self.queue.append(pipe)
+        self.queue.append(pipe)  # Add socket object to the end
 
     def get_pipe_serv_from_queue(self) -> PipeService:
-        # Return socket object from the beginning
-        return self.queue.pop(0)
+        return self.queue.pop(0)  # Return socket object from the beginning
 
     def get_num_elements_in_queue(self):
-        # Get number of elements in the queue
-        return len(self.queue)
+        return len(self.queue)  # Get number of elements in the queue
