@@ -17,6 +17,6 @@ The comands for launching both server and client can be executed in the followin
 
 ## Useful docs
 - README.md: https://github.com/estebanarivasv/C-II-2020/blob/master/help_chat/README.md
-- README.info: https://github.com/estebanarivasv/C-II-2020/blob/master/help_chat/README.info
-- README.todo: https://github.com/estebanarivasv/C-II-2020/blob/master/help_chat/README.todo
+- INFO.md: https://github.com/estebanarivasv/C-II-2020/blob/master/help_chat/INFO.md
+- TODO.md: https://github.com/estebanarivasv/C-II-2020/blob/master/help_chat/TODO.md
 - INSTALL.md: https://github.com/estebanarivasv/C-II-2020/blob/master/help_chat/INSTALL.md
