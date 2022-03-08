@@ -18,11 +18,11 @@ class ConsoleView:
 
     @staticmethod
     def ask_user_input():
-        return input(stylize("\n\n<YOU> ", colored.fg("green")))
+        return input(stylize("\n<YOU> ", colored.fg("green")))
 
     @staticmethod
     def show_response(msg):
-        print(stylize('\n\n>>> ' + msg, colored.fg("yellow")), end='')
+        print(stylize('\n' + msg, colored.fg("yellow")), end='')
 
     @staticmethod
     def show_info(msg):

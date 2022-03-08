@@ -1,9 +1,5 @@
 import socket
 
-from main.views import ConsoleView
-
-v = ConsoleView()
-
 
 class ChatService:
 
@@ -15,3 +11,6 @@ class ChatService:
 
     def send_message(self, msg: str):
         self.sock.send(msg.encode("utf-8"))
+
+    def close_connection(self):
+        self.sock.close()

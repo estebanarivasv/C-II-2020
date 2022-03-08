@@ -11,20 +11,21 @@ v = ConsoleView()
 class OperatorService:
 
     def __init__(self):
+        """
+        When instanced, a socket that is going to connect with the server is created.
+        """
         try:
-            # Socket that connects to the client
-            self.operator_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # This socket talks with the server
+            # Socket that communicates with the server
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as e:
             v.show_warning(f"Socket error: {e}")
             sys.exit(0)
 
     def close_sockets(self):
-        self.operator_socket.close()
         self.server_socket.close()
 
     def interruption_handler(self, s, f):
+        # CTRL + C --- Signal handler
         self.close_sockets()
         sys.exit(0)
 
@@ -35,17 +36,11 @@ class OperatorService:
             v.show_warning(f"\n\nCONNECTION ERROR: {e}\n")
             sys.exit(0)
 
-    def connect_to_client(self, host, port):
-        try:
-            v.show_info(f"\nAttempting to connect to {host}:{port}\n")
-            self.operator_socket.connect((host, port))
-            return self.operator_socket.getsockname()
-        except Exception as e:
-            v.show_warning(f"\n\nCONNECTION ERROR: {e}\n")
-            sys.exit(0)
-
     def send_conn_info(self, department):
-
+        """
+        Sends a list with the type of user that tries to connect (operator),
+        and the department to which the user is trying to connect to.
+        """
         chat_service = ChatService(self.server_socket)
         try:
             # Send client data to establish communication with the server
@@ -54,6 +49,10 @@ class OperatorService:
             v.show_warning(f"Connection error: {e}\n")
 
     def is_authenticated(self):
+        """
+        Checks if the user is able to authenticate
+        once they deliver the login information
+        """
         chat = ChatService(self.server_socket)
 
         # Send username and password to server
@@ -70,30 +69,24 @@ class OperatorService:
             return False
 
     def main(self, host, port, department):
-        # Signal TERM handler --- CTRL + C - Stops client
-        signal.signal(signal.SIGINT, self.interruption_handler)
+        """
+        Helps with server connection and chat between clients and operators
+        """
 
         server_chat = ChatService(self.server_socket)
+        signal.signal(signal.SIGINT, self.interruption_handler)
 
-        # Print welcome message
-        v.show_info(v.return_welcome_msg(host, port))
+        v.show_info(v.return_welcome_msg(host, port))  # Print welcome message
 
-        self.connect_to_server(host, port)
-
-        self.send_conn_info(department)
+        self.connect_to_server(host, port)  # Establish connection
+        self.send_conn_info(department)  # Send info to server
 
         if self.is_authenticated() is True:
             # This loop iterates to get a new customer in the queue
             while True:
-                client_addr = eval(server_chat.receive_message())
-
-                from_address = self.connect_to_client(client_addr[0], client_addr[1])
-                v.show_info(f'\nActual connection: {from_address[0]}:{from_address[1]}')
-
-                operator_chat = ChatService(self.operator_socket)
-                operator_chat.send_message(f"\nYou're now connected with an operator")
-
-                operator_chat.start_conversation()
-
+                server_chat.start_conversation()
+                v.show_alert("\nChat ended."
+                             "\nIn 15 seconds, the system is going to check and try to fetch a client "
+                             "awaiting to be assisted in the queue...")
         self.close_sockets()
         sys.exit(0)
