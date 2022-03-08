@@ -1,6 +1,6 @@
 import socket
 import sys
-import multiprocessing
+import threading
 import time
 
 from main.config import session
@@ -193,7 +193,7 @@ class ServerService:
 
         while True:
             c_socket, addr = self.server_socket.accept()  # Accept connections
-            client_proc = multiprocessing.Process(
+            client_proc = threading.Thread(
                 target=self.handle_connection,
                 args=(c_socket, addr)
             )
