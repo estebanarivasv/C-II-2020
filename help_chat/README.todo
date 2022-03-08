@@ -1,4 +1,5 @@
-contendrá una lista detallada de mejoras y posibles nuevas características/features
-del sistema para futuras versiones.
+## Possible upgrades and features for future versions
 
 - Apply SSL for username and password exchange.
+- Disconnect client if a certain time passes by.
+- Implement dinamic chat where the users can send more messages from each side.
