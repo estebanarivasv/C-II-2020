@@ -9,7 +9,11 @@ v = ConsoleView()
 
 
 class ClientService:
+
     def __init__(self):
+        """
+        When instanced, a socket that is going to connect with the server is created.
+        """
         try:
             # Socket that communicates with the server
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,19 +26,22 @@ class ClientService:
         self.server_socket.close()
 
     def interruption_handler(self, s, f):
+        # CTRL + C --- Signal handler
         self.close_server_socket()
         sys.exit(0)
 
     def connect_to_server(self, host, port):
         try:
             self.server_socket.connect((host, port))
-            return self.server_socket.getsockname()
         except Exception as e:
             v.show_warning(f"\n\nCONNECTION ERROR: {e}\n")
             sys.exit(0)
 
     def send_conn_info(self, department):
-
+        """
+        Sends a list with the type of user that tries to connect (client),
+        and the department to which the user is trying to connect to.
+        """
         chat_service = ChatService(self.server_socket)
         try:
             # Send client data to establish communication with the server
@@ -43,26 +50,25 @@ class ClientService:
             v.show_warning(f"Connection error: {e}\n")
 
     def main(self, host, port, department):
-        # CTRL + C - Stops client
+        """
+        Helps with server connection and chat between clients and operators
+        """
+
+        server_chat = ChatService(self.server_socket)
         signal.signal(signal.SIGINT, self.interruption_handler)
 
-        v.show_info(v.return_welcome_msg(host, port))
+        v.show_info(v.return_welcome_msg(host, port))  # Print welcome message
 
-        from_address = self.connect_to_server(host, port)
-        v.show_info(f'\nActual connection: {from_address[0]}:{from_address[1]}')
-
-        # Todo: Sends role as 'client' and department value
-        self.send_conn_info(department)
+        self.connect_to_server(host, port)  # Establish connection
+        self.send_conn_info(department)  # Send info to server
 
         v.show_alert(
             f'\n\nYou asked to talk with {str(department).upper()} SUPPORT.'
             f'\nPlease wait...\n'
         )
 
-        chat_service = ChatService(self.server_socket)
-
-        v.show_response(chat_service.receive_message())     # Wait 4 operator
-        chat_service.start_conversation()
+        v.show_response(server_chat.receive_message())  # Awaiting an operator to connect
+        server_chat.start_conversation()
 
         self.close_server_socket()
         sys.exit(0)

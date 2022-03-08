@@ -11,8 +11,11 @@ v = ConsoleView()
 class OperatorService:
 
     def __init__(self):
+        """
+        When instanced, a socket that is going to connect with the server is created.
+        """
         try:
-            # This socket talks with the server
+            # Socket that communicates with the server
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except socket.error as e:
             v.show_warning(f"Socket error: {e}")
@@ -22,6 +25,7 @@ class OperatorService:
         self.server_socket.close()
 
     def interruption_handler(self, s, f):
+        # CTRL + C --- Signal handler
         self.close_sockets()
         sys.exit(0)
 
@@ -33,7 +37,10 @@ class OperatorService:
             sys.exit(0)
 
     def send_conn_info(self, department):
-
+        """
+        Sends a list with the type of user that tries to connect (operator),
+        and the department to which the user is trying to connect to.
+        """
         chat_service = ChatService(self.server_socket)
         try:
             # Send client data to establish communication with the server
@@ -42,6 +49,10 @@ class OperatorService:
             v.show_warning(f"Connection error: {e}\n")
 
     def is_authenticated(self):
+        """
+        Checks if the user is able to authenticate
+        once they deliver the login information
+        """
         chat = ChatService(self.server_socket)
 
         # Send username and password to server
@@ -58,15 +69,17 @@ class OperatorService:
             return False
 
     def main(self, host, port, department):
-        # Signal TERM handler --- CTRL + C - Stops client
-        signal.signal(signal.SIGINT, self.interruption_handler)
+        """
+        Helps with server connection and chat between clients and operators
+        """
+
         server_chat = ChatService(self.server_socket)
+        signal.signal(signal.SIGINT, self.interruption_handler)
 
-        # Print welcome message
-        v.show_info(v.return_welcome_msg(host, port))
+        v.show_info(v.return_welcome_msg(host, port))  # Print welcome message
 
-        self.connect_to_server(host, port)
-        self.send_conn_info(department)
+        self.connect_to_server(host, port)  # Establish connection
+        self.send_conn_info(department)  # Send info to server
 
         if self.is_authenticated() is True:
             # This loop iterates to get a new customer in the queue

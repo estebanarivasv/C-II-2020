@@ -16,6 +16,16 @@ class ClientController:
         self.user_role = None
 
     def load_parameters(self):
+        """
+        Function that saves the options values to the ClientController class attributes:
+        - self.server_host
+        - self.server_port
+        - self.user_department
+        - self.user_role
+
+        It raises getopt.GetoptError if any option is invalid.
+        """
+
         (opts, args) = getopt.getopt(sys.argv[1:], 'h:p:d:r:', ['host=', 'port=', 'department=', 'role='])
         try:
             if len(opts) != 4:
@@ -40,6 +50,10 @@ class ClientController:
             sys.exit(0)
 
     def main(self):
+        """
+        Main method that interacts with the ClientService and the OperatorService
+        """
+
         # Fetch data from parameters
         self.load_parameters()
 
